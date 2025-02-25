@@ -1,7 +1,59 @@
 {
     "name": "SpiderForce4AI",
-    "description": "Advanced web scraping and automation tool with stealth capabilities",
-    "keywords": ["node", "puppeteer", "web-scraping"],
-    "website": "https://petertam.pro",
-    "repository": "https://github.com/petertamai/SpiderForce4AI"
+    "description": "High-performance HTML to Markdown converter and content extractor, optimized for AI training data collection, RAG (Retrieval-Augmented Generation), and SEO analysis.",
+    "repository": "https://github.com/petertamai/SpiderForce4AI",
+    "logo": "https://raw.githubusercontent.com/petertamai/SpiderForce4AI/main/logo.png",
+    "keywords": [
+      "web-scraping",
+      "html",
+      "markdown",
+      "ai",
+      "rag",
+      "content-extraction",
+      "nodejs"
+    ],
+    "env": {
+      "PORT": {
+        "description": "Port on which the app runs",
+        "value": "3004"
+      },
+      "NODE_ENV": {
+        "description": "Node environment",
+        "value": "production"
+      },
+      "MAX_RETRIES": {
+        "description": "Maximum number of retries for failed requests",
+        "value": "2"
+      },
+      "PAGE_TIMEOUT": {
+        "description": "Timeout for page navigation in milliseconds",
+        "value": "30000"
+      },
+      "MAX_CONCURRENT_PAGES": {
+        "description": "Maximum number of concurrent browser pages",
+        "value": "10"
+      },
+      "AGGRESSIVE_CLEANING": {
+        "description": "Enable/disable aggressive cleaning of HTML content",
+        "value": "true"
+      },
+      "REMOVE_IMAGES": {
+        "description": "Enable/disable removal of images from markdown output",
+        "value": "false"
+      }
+    },
+    "buildpacks": [
+      {
+        "url": "heroku/nodejs"
+      },
+      {
+        "url": "https://github.com/heroku/heroku-buildpack-google-chrome"
+      }
+    ],
+    "formation": {
+      "web": {
+        "quantity": 1,
+        "size": "standard-1x"
+      }
+    }
   }
