@@ -1,10 +1,9 @@
 # SpiderForce4AI Simple as a Service (Jina, Firecrawl, Crawl4AI Alternative)
 
 🚀 High-performance HTML to Markdown converter and content extractor, optimized for AI training data collection, RAG (Retrieval-Augmented Generation), and SEO analysis. A powerful alternative to Firecrawl and Jina AI, designed for speed and precision in web content processing.
-**This crwaler is highly optimized for speed and performance, it does what it takes and cuts non needed bs.**
+**This crawler is highly optimized for speed and performance—it does what it takes and cuts out unnecessary bs.**
 
-**INFO:** This is a self-hosted solution. For a decent performance it reqires minium 256MB RAM and 1 CPU core. 
-Keep in min that it does run a real browser to complete and render pages.
+**INFO:** This is a self-hosted solution. For decent performance, it requires a minimum of 256MB RAM and 1 CPU core.
 
 
 
@@ -13,6 +12,12 @@ Keep in min that it does run a real browser to complete and render pages.
 docker run -d --restart unless-stopped -p 3004:3004 --name spiderforce2ai petertamai/spiderforce2ai:latest
 ```
 Run already compiled version from docker hub. No configuration needed.
+
+```plaintext
+http://localhost:3000/convert?url=https://petertam.pro
+```
+
+
 
 
 ## Features
