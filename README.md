@@ -17,6 +17,14 @@ Run already compiled version from docker hub. No configuration needed.
 http://localhost:3000/convert?url=https://petertam.pro
 ```
 
+## Deploy to Heroku
+
+[![Deploy](https://www.heroku.com/partner-material/images/Deploy_to_Heroku.svg)](https://www.heroku.com/partner-material/buttons/partner-button.html?repo=petertamai/SpiderForce4AI&ref=main)
+
+## Deploy to Digital Ocean
+
+[![Deploy to DO](https://www.digitalocean.com/partner-material/images/Deploy_to_DigitalOcean.svg)](https://cloud.digitalocean.com/apps/new?repo=petertamai/SpiderForce4AI&ref=main)
+
 ## Features
 
 ### Core Capabilities
