@@ -19,11 +19,11 @@ http://localhost:3000/convert?url=https://petertam.pro
 
 ## Deploy to Heroku
 
-[![Deploy](https://www.heroku.com/partner-material/images/Deploy_to_Heroku.svg)](https://www.heroku.com/partner-material/buttons/partner-button.html?repo=petertamai/SpiderForce4AI&ref=main)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/petertamai/SpiderForce4AI)
 
 ## Deploy to Digital Ocean
 
-[![Deploy to DO](https://www.digitalocean.com/partner-material/images/Deploy_to_DigitalOcean.svg)](https://cloud.digitalocean.com/apps/new?repo=petertamai/SpiderForce4AI&ref=main)
+[![Deploy to DO](https://mp-assets1.sfo2.digitaloceanspaces.com/deploy-to-do/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/petertamai/SpiderForce4AI/tree/main)
 
 ## Features
 
