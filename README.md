@@ -1,4 +1,4 @@
-# SpiderForce4AI Simple as a Service (Jina, Firecrawl, Crawl4AI Alternative)
+# SpiderForce4AI as a Service (Jina, Firecrawl, Crawl4AI Alternative)
 
 🚀 High-performance HTML to Markdown converter and content extractor, optimized for AI training data collection, RAG (Retrieval-Augmented Generation), and SEO analysis. A powerful alternative to Firecrawl and Jina AI, designed for speed and precision in web content processing.
 **This crawler is highly optimized for speed and performance—it does what it takes and cuts out unnecessary bs.**
@@ -16,9 +16,6 @@ Run already compiled version from docker hub. No configuration needed.
 ```plaintext
 http://localhost:3000/convert?url=https://petertam.pro
 ```
-
-
-
 
 ## Features
 
