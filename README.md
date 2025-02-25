@@ -3,7 +3,8 @@
 🚀 High-performance HTML to Markdown converter and content extractor, optimized for AI training data collection, RAG (Retrieval-Augmented Generation), and SEO analysis. A powerful alternative to Firecrawl and Jina AI, designed for speed and precision in web content processing.
 **This crawler is highly optimized for speed and performance—it does what it takes and cuts out unnecessary bs.**
 
-**INFO:** This is a self-hosted solution. For decent performance, it requires a minimum of 256MB RAM and 1 CPU core.
+**INFO:** This is a self-hosted solution. For decent performance, it requires a minimum of 1GB of RAM and 1 CPU core.
+
 
 
 
@@ -21,9 +22,6 @@ http://localhost:3000/convert?url=https://petertam.pro
 
 ### Digital Ocean
 [![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/petertamai/SpiderForce4AI/tree/main)
-
-### Heroku
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/petertamai/SpiderForce4AI)
 
 
 
