@@ -1,8 +1,7 @@
 {
     "name": "SpiderForce4AI",
-    "description": "High-performance HTML to Markdown converter and content extractor, optimized for AI training data collection, RAG (Retrieval-Augmented Generation), and SEO analysis.",
+    "description": "High-performance HTML to Markdown converter and content extractor, optimized for AI training data collection, RAG, and SEO analysis",
     "repository": "https://github.com/petertamai/SpiderForce4AI",
-    "logo": "https://raw.githubusercontent.com/petertamai/SpiderForce4AI/main/logo.png",
     "keywords": [
       "web-scraping",
       "html",
@@ -50,10 +49,10 @@
         "url": "https://github.com/heroku/heroku-buildpack-google-chrome"
       }
     ],
-    "formation": {
-      "web": {
-        "quantity": 1,
-        "size": "standard-1x"
-      }
-    }
+    "scripts": {
+      "postdeploy": "npm run start:pm2"
+    },
+    "success_url": "/",
+    "website": "https://petertam.pro",
+    "logo": "https://raw.githubusercontent.com/petertamai/SpiderForce4AI/main/logo.png"
   }

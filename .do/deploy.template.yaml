@@ -5,7 +5,14 @@ spec:
       git:
         branch: main
         repo_clone_url: https://github.com/petertamai/SpiderForce4AI.git
-      build_command: npm install
+      build_command: |
+        apt-get update
+        apt-get install -y wget gnupg
+        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+        sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+        apt-get update
+        apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 libxtst6 libgbm1 libasound2
+        npm install
       run_command: npm run start
       instance_count: 1
       instance_size_slug: basic-s
@@ -31,4 +38,10 @@ spec:
           scope: RUN_TIME
         - key: REMOVE_IMAGES
           value: "false"
+          scope: RUN_TIME
+        - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
+          value: "true"
+          scope: RUN_TIME
+        - key: PUPPETEER_EXECUTABLE_PATH
+          value: "/usr/bin/google-chrome-stable"
           scope: RUN_TIME
