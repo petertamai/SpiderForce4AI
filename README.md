@@ -26,8 +26,6 @@ http://localhost:3000/convert?url=https://petertam.pro
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/petertamai/SpiderForce4AI)
 
 
-[![Deploy to DO](https://mp-assets1.sfo2.digitaloceanspaces.com/deploy-to-do/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/petertamai/SpiderForce4AI/tree/main)
-
 ## Features
 
 ### Core Capabilities
