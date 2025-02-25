@@ -3,7 +3,7 @@ module.exports = {
   apps: [{
     name: 'spiderforce4ai',
     script: 'src/index.js',
-    instances: 2,
+    instances: 1,
     exec_mode: 'cluster',
     autorestart: true,
     watch: false,
