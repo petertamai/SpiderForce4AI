@@ -1,0 +1,17 @@
+[
+    "mobile-menu", "menu","awsccc-cs-container","awsccc-sb-ux-c", "awsccc-cs-content", "header", "footer", "page-header", "page-footer", "header-container", 
+    "footer-container", "shopify-section-header", "shopify-section-footer", 
+    "SITE_HEADER", "SITE_FOOTER", "ccm-page-header", "ccm-page-footer", 
+    "sf-header", "sf-footer", "dnn-header", "dnn-footer", "global-header", 
+    "global-footer", "header-wrapper", "footer-wrapper", "header-container", 
+    "footer-container", "ipsHeader", "ipsFooter", "kheader", "kfooter", 
+    "top-header", "bottom-footer", "main-header", "main-footer", "primary-header", 
+    "primary-footer", "secondary-header", "secondary-footer", "header-top", 
+    "footer-bottom", "header-section", "footer-section", "header-bar", 
+    "footer-bar", "header-area", "footer-area", "header-content", "footer-content", 
+    "header-wrapper", "footer-wrapper", "header-container", "footer-container", 
+    "header-block", "footer-block", "header-main", "footer-main", "header-topbar", 
+    "footer-cta",
+    "footer-bottombar","wpadminbar","wp-toolbar","global-header__navigation","wp-admin-bar-top-secondary","skip-navigation",
+    "cookie-law-info-again","nav","main-menu","site-nav"
+]
