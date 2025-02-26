@@ -2,11 +2,13 @@
 
 > Run your own web crawler without annoying limits or insane costs. Just $10/month on any basic VPS (1GB RAM, 1 core is enough; 2GB, 2 cores is comfortable).
 
-A high-performance HTML to Markdown converter built for AI training data, RAG systems, and anyone sick of overpriced web crawling services. 
+A high-performance HTML to Markdown converter built for AI training data, RAG systems, and anyone tired of overpriced web crawling services. 
 
-**This crawler is highly optimized for speed and performance—it does what it takes and cuts out unnecessary bs.**
+**This crawler is highly optimized for speed and performance - it does what it takes and cuts out unnecessary bs.**
 
 **No menus, no footers, no cookie consents out of the box!** - Without AI, pure engineering logic!
+
+The main focus of this tool is simplicity of setup and ease of use.
 
 ## Crawling Time Comparison
 
@@ -135,15 +137,7 @@ These settings can be adjusted to optimize for your specific use cases:
 - Set it to 0 to completely disable dynamic content handling
 </details>
 
-## Why I Built This - My Personal Journey
-
-Web scraping and content extraction are deceptively complex. Since 2010, I've been building tools to tackle these challenges, and each year brings new obstacles: JavaScript frameworks, anti-bot systems, complex DOM structures, and ever-changing web standards.
-
-Web crawling doesn't have to be expensive or complicated. While solutions like Jina.ai and Firecrawl offer great features, they often come with hefty price tags or limitations. This project gives you a free, ready-to-use crawler backed by years of real-world scraping experience - no strings attached.
-
-Why NodeJS? Simple - when you're scraping with Puppeteer, adding a Python wrapper just adds overhead. This is built to be fast from the ground up, without any unnecessary communication between languages or services.
-
-## Python Wrapper
+## Advanced Python Wrapper Available
 Need more control over the crawling process? Check out my Python wrapper for SpiderForce4AI.
 - Parrallel crawling 
 - LLM integration and data extraction
@@ -152,6 +146,14 @@ Need more control over the crawling process? Check out my Python wrapper for Spi
 
 [![PyPI version](https://badge.fury.io/py/spiderforce4ai.svg)](https://badge.fury.io/py/spiderforce4ai)
 [https://pypi.org/project/spiderforce4ai/](https://pypi.org/project/spiderforce4ai/)
+
+## Why I Built This - My Personal Journey
+
+Web scraping and content extraction are deceptively complex. Since 2010, I've been building tools to tackle these challenges, and each year brings new obstacles: JavaScript frameworks, anti-bot systems, complex DOM structures, and ever-changing web standards.
+
+Web crawling doesn't have to be expensive or complicated. While solutions like Jina.ai and Firecrawl offer great features, they often come with hefty price tags or limitations. This project gives you a free, ready-to-use crawler backed by years of real-world scraping experience - no strings attached.
+
+Why NodeJS? Simple - when you're scraping with Puppeteer, adding a Python wrapper just adds overhead. This is built to be fast from the ground up, without any unnecessary communication between languages or services.
 
 ## Installation from github
 
@@ -274,6 +276,7 @@ curl -X POST "http://localhost:3004/crawl_urls" \
     }
   }'
 ```
+> Webhook post mode
 
 ### Job Status Checking
 ```bash
@@ -405,7 +408,7 @@ curl -X POST http://localhost:3004/v1/scrape \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer YOUR_API_KEY' \  # Any API key
   -d '{
-    "url": "https://example.com",
+    "url": "https://petertam.pro",
     "formats": ["markdown"]
   }'
 ```
@@ -420,7 +423,7 @@ Response:
       "title": "Page Title",
       "description": "Page description",
       "language": "en",
-      "sourceURL": "https://example.com"
+      "sourceURL": "https://petertam.pro"
     }
   }
 }
@@ -443,7 +446,7 @@ When using webhooks, you'll receive events in Firecrawl format:
         "title": "Page Title",
         "description": "Page Description",
         "language": "en",
-        "sourceURL": "https://example.com/page",
+        "sourceURL": "https://petertam.pro",
         "statusCode": 200
       }
     }
