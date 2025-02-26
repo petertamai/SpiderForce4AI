@@ -120,5 +120,8 @@
     "page-footer",
     "page-header",
     "copyrigh",
-    "topnavmenu"
+    "topnavmenu",
+    "topNavigation",
+    "fixed-header",
+    "header-content"
 ]

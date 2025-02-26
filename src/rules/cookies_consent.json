@@ -38,5 +38,6 @@
     ".iai_cookie",
     "#CybotCookiebotDialog",
     ".cky-consent-container ",
-    ".cky-modal"
+    ".cky-modal",
+    ".cookiecontent"
   ]

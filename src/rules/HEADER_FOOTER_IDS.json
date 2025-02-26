@@ -13,5 +13,6 @@
     "header-block", "footer-block", "header-main", "footer-main", "header-topbar", 
     "footer-cta",
     "footer-bottombar","wpadminbar","wp-toolbar","global-header__navigation","wp-admin-bar-top-secondary","skip-navigation",
-    "cookie-law-info-again","nav","main-menu","site-nav"
+    "cookie-law-info-again","nav","main-menu","site-nav","skipContentLink","header-mainwrapper ","footer-mainwrapper ",
+    "header-mainwrapper","footer-mainwrapper","footerwrapper","mob-menu","topnavigation"
 ]
