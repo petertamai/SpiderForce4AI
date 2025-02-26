@@ -27,23 +27,23 @@ const MAX_RETRIES = 2;
 /**
  * Main conversion function
  */
-async function convertUrlToMarkdown(url, options = {}, retryCount = 0) {
+/**
+ * Enhanced convertUrlToMarkdown function with multi-stage fallback strategy
+ * Prioritizes SPEED while ensuring content is always extracted
+ */
+/**
+ * Enhanced convertUrlToMarkdown function with multi-stage fallback strategy
+ * Prioritizes SPEED while ensuring content is always extracted
+ */
+async function convertUrlToMarkdown(url, options = {}, retryCount = 0, fallbackStage = 0) {
   let page = null;
 
   try {
-    page = await browserManager.createPage();
-
-    // Navigate to URL with timeout
-    await browserManager.navigateToUrl(page, url);
-
-    // Wait for content to be available
-    await page.waitForFunction(() => 
-      document.body && document.body.innerHTML.length > 0, 
-      { timeout: PAGE_TIMEOUT }
-    );
-
-    // Parse options with proper defaults from env or query params
+    // Import required modules
+    const dynamicContentHandler = require('./utils/dynamic-content-handler');
     const config = require('./utils/config');
+    
+    // Parse options with proper defaults
     const conversionOptions = {
       aggressive_cleaning: options.aggressive_cleaning !== undefined ? options.aggressive_cleaning : 
                           (options.aggressiveCleaning !== undefined ? options.aggressiveCleaning : 
@@ -52,11 +52,76 @@ async function convertUrlToMarkdown(url, options = {}, retryCount = 0) {
                     (options.removeImages !== undefined ? options.removeImages : 
                     (process.env.REMOVE_IMAGES !== undefined ? process.env.REMOVE_IMAGES === 'true' : false)),
       targetSelectors: options.targetSelectors || [],
-      removeSelectors: options.removeSelectors || []
+      removeSelectors: options.removeSelectors || [],
+      min_content_length: options.min_content_length || options.minContentLength || 
+                         parseInt(process.env.MIN_CONTENT_LENGTH, 10) || 500,
+      dynamic_content_timeout: options.dynamic_content_timeout || options.dynamicContentTimeout || 
+                              parseInt(process.env.DYNAMIC_CONTENT_TIMEOUT, 10) || 5000,
+      scroll_wait_time: options.scroll_wait_time || options.scrollWaitTime || 
+                       parseInt(process.env.SCROLL_WAIT_TIME, 10) || 200
     };
 
-    console.log(`[${url}] Using conversion options:`, conversionOptions);
+    // Log conversion options and fallback stage if applicable
+    if (fallbackStage > 0) {
+      console.log(`[${url}] 🛡️ FALLBACK STAGE ${fallbackStage}: ${fallbackStage === 1 ? 'Scroll and retry with aggressive cleaning' : 'Disable aggressive cleaning'}`);
+      
+      // Only disable aggressive cleaning in stage 2
+      if (fallbackStage === 2) {
+        conversionOptions.aggressive_cleaning = false;
+      }
+    }
 
+    console.log(`[${url}] Using conversion options:`, conversionOptions);
+    
+    // Create page and navigate
+    page = await browserManager.createPage();
+    await browserManager.navigateToUrl(page, url);
+
+    // Wait for content to be available
+    await page.waitForFunction(() => 
+      document.body && document.body.innerHTML.length > 0, 
+      { timeout: PAGE_TIMEOUT }
+    );
+
+    // Evaluate content richness before any processing
+    const initialContentStats = await dynamicContentHandler.evaluateContentRichness(page);
+    console.log(`[${url}] Initial content stats: ${initialContentStats.textLength} chars, ${initialContentStats.elementCount} elements`);
+    
+    // Only scroll in initial attempt if content is below threshold
+    // In fallback stage 1, always scroll regardless of content length
+    if (initialContentStats.textLength < conversionOptions.min_content_length || fallbackStage === 1) {
+      console.log(`[${url}] ${fallbackStage === 1 ? 'Forced scroll in fallback mode' : 'Content length below threshold'}, scrolling to load dynamic content...`);
+      
+      try {
+        // Scroll to the bottom of the page
+        await page.evaluate(() => {
+          try {
+            if (document.body) {
+              window.scrollTo(0, document.body.scrollHeight);
+              return true;
+            }
+            return false;
+          } catch (e) {
+            console.error('Error scrolling:', e);
+            return false;
+          }
+        });
+        
+        // Wait 200ms after scrolling
+        await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 200)));
+        console.log(`[${url}] Scrolled to bottom and waited 200ms`);
+      } catch (scrollError) {
+        console.error(`[${url}] Error during scrolling: ${scrollError.message}`);
+        // Continue anyway - we'll try to extract whatever content is available
+      }
+    } else if (fallbackStage === 0) {
+      console.log(`[${url}] Initial content length (${initialContentStats.textLength}) exceeds minimum threshold (${conversionOptions.min_content_length}), skipping dynamic content loading`);
+    }
+
+    // Re-evaluate content after dynamic loading attempts
+    const updatedContentStats = await dynamicContentHandler.evaluateContentRichness(page);
+    console.log(`[${url}] Updated content stats: ${updatedContentStats.textLength} chars, ${updatedContentStats.elementCount} elements`);
+    
     // Extract metadata
     console.log(`[${url}] Extracting metadata...`);
     const metadata = await extractMetadata(page);
@@ -68,7 +133,45 @@ async function convertUrlToMarkdown(url, options = {}, retryCount = 0) {
 
     console.log(`[${url}] Converting to markdown...`);
     const contentMarkdown = await convertToMarkdown(cleanedHtml, conversionOptions);
+    
+    // Verify content length meets minimum threshold
+    if (contentMarkdown.length < conversionOptions.min_content_length) {
+      // IMPLEMENT FALLBACK STRATEGY
+      if (fallbackStage === 0) {
+        // Try STAGE 1: Scroll to bottom, wait 200ms, and retry with aggressive cleaning
+        console.log(`[${url}] Content length (${contentMarkdown.length}) below minimum threshold (${conversionOptions.min_content_length})`);
+        console.log(`[${url}] Trying fallback strategy - Stage 1: Scroll to bottom, wait 200ms, retry with aggressive cleaning`);
+        
+        // Close current page before retry to prevent memory issues
+        if (page) {
+          await browserManager.closePage(page).catch(err => console.error('Error closing page:', err));
+          page = null;
+        }
+        
+        return convertUrlToMarkdown(url, options, retryCount, 1);
+      } 
+      else if (fallbackStage === 1) {
+        // Try STAGE 2: Disable aggressive cleaning, scroll to bottom, wait 200ms
+        console.log(`[${url}] Stage 1 fallback still insufficient (${contentMarkdown.length} chars)`);
+        console.log(`[${url}] Trying fallback strategy - Stage 2: Disable aggressive cleaning, scroll to bottom, wait 200ms`);
+        
+        // Close current page before retry to prevent memory issues
+        if (page) {
+          await browserManager.closePage(page).catch(err => console.error('Error closing page:', err));
+          page = null;
+        }
+        
+        return convertUrlToMarkdown(url, options, retryCount, 2);
+      }
+      else {
+        // We've tried all fallback strategies, just return what we have
+        console.log(`[${url}] ⚠️ All fallback strategies attempted. Returning best effort content (${contentMarkdown.length} chars)`);
+      }
+    }
 
+    // Log final content stats
+    console.log(`[${url}] Final markdown length: ${contentMarkdown.length} characters`);
+    
     // Combine all parts
     return `URL: ${url}\n\n${formattedMetadata}\n\n---\n\n${contentMarkdown}`;
 
@@ -82,7 +185,7 @@ async function convertUrlToMarkdown(url, options = {}, retryCount = 0) {
       error.message.includes('Protocol error')
     )) {
       console.log(`[${url}] Retrying... (${retryCount + 1}/${MAX_RETRIES})`);
-      return convertUrlToMarkdown(url, options, retryCount + 1);
+      return convertUrlToMarkdown(url, options, retryCount + 1, fallbackStage);
     }
 
     throw error;
@@ -93,7 +196,6 @@ async function convertUrlToMarkdown(url, options = {}, retryCount = 0) {
     }
   }
 }
-
 
 /**
  * Parse selectors from query string or body

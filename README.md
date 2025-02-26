@@ -28,7 +28,9 @@ http://localhost:3000/convert?url=https://petertam.pro
 
 ## Features
 
-### Core Capabilities
+<details>
+<summary><strong>⚡ Core Capabilities</strong></summary>
+
 - ⚡ Lightning-fast HTML to Markdown conversion
 - 🎯 Precise content targeting with multiple selectors
 - 🧹 No menus, no footers out of the box!
@@ -36,16 +38,23 @@ http://localhost:3000/convert?url=https://petertam.pro
 - 🎣 Custom webhook integration - configure your own webhooks template
 - 📊 Metadata extraction
 - 🔄 Automatic retry mechanism
+- 🛡️ Bullet-proof dynamic content handling
+</details>
 
-### AI & RAG Features
+<details>
+<summary><strong>🧠 AI & RAG Features</strong></summary>
+
 - 📚 Clean, structured content for AI training
 - 🧮 Context preservation for better embeddings
 - 📑 Automated content chunking preparation
 - 🔍 Rich metadata extraction for ML pipelines
 - 📈 Batch processing capabilities
 - 🤖 LLM-ready output format
+</details>
 
-### Advanced Features
+<details>
+<summary><strong>🔧 Advanced Features</strong></summary>
+
 - 🛡️ Stealth mode with Puppeteer
 - 🚫 Built-in ad and tracker blocking
 - 🍪 Automatic cookie consent handling
@@ -53,8 +62,13 @@ http://localhost:3000/convert?url=https://petertam.pro
 - 🎭 Browser fingerprint protection
 - 📝 Markdown optimization
 - 🔌 Webhook customization with variables
+- 🌐 Multi-stage fallback for problematic sites
+- 🚀 Smart content length detection
+</details>
 
-### Batch Processing Features
+<details>
+<summary><strong>📦 Batch Processing Features</strong></summary>
+
 - 🌐 Sitemap crawling and parsing
 - 📦 Bulk URL processing
 - 📊 Progress tracking and reporting
@@ -63,8 +77,11 @@ http://localhost:3000/convert?url=https://petertam.pro
 - 📝 Job status monitoring
 - 🎯 Customizable batch sizes
 - 🚦 Rate limiting and queuing
+</details>
 
-### Webhook Integration
+<details>
+<summary><strong>🔌 Webhook Integration</strong></summary>
+
 - 🔔 Progress notifications
 - 📊 Batch processing status
 - 🎯 Custom data mapping
@@ -73,6 +90,7 @@ http://localhost:3000/convert?url=https://petertam.pro
 - ⏱️ Processing timestamps
 - 📈 Success/failure tracking
 - 🔄 Retry mechanism
+</details>
 
 ## Performance Highlights
 - Maintains single browser instance for optimal performance
@@ -83,6 +101,37 @@ http://localhost:3000/convert?url=https://petertam.pro
 - Parallel batch processing
 - Job queuing and monitoring
 - Resource usage optimization
+- Intelligent dynamic content handling with 3-stage fallback
+
+## Dynamic Content Handling
+
+SpiderForce4AI now includes a sophisticated 3-stage approach to handle dynamic and problematic content:
+
+<details>
+<summary><strong>🚀 Dynamic Content Extraction Strategy</strong></summary>
+
+1. **STAGE 0 (Default)**: Fast extraction with aggressive cleaning - optimized for speed
+2. **STAGE 1 (First Fallback)**: If content is insufficient, re-run with scroll to the bottom, wait 200ms, then try extraction with aggressive cleaning
+3. **STAGE 2 (Last Resort)**: If content is still insufficient, re-run with scroll to the bottom, wait 200ms, and disable aggressive cleaning
+
+This approach maintains speed for the vast majority of sites while providing bulletproof extraction for problematic pages. The system automatically adapts based on content quality.
+</details>
+
+<details>
+<summary><strong>⚙️ Configuration Options</strong></summary>
+
+```env
+# Dynamic Content Configuration
+MIN_CONTENT_LENGTH=500           # Minimum acceptable content length (characters)
+SCROLL_WAIT_TIME=200             # Milliseconds to wait after scrolling
+AGGRESSIVE_CLEANING=true         # Enable/disable aggressive cleaning by default
+```
+
+These settings can be adjusted to optimize for your specific use cases:
+- Reduce `MIN_CONTENT_LENGTH` to prioritize speed
+- Increase it to ensure more thorough content extraction
+- Set it to 0 to completely disable dynamic content handling
+</details>
 
 
 ## Python Wrapper
@@ -142,6 +191,18 @@ curl -X POST "http://localhost:3004/convert" \
     "url": "https://example.com",
     "targetSelectors": [".main-content", "article", "#content"],
     "removeSelectors": [".ads", ".sidebar", ".nav"]
+  }'
+```
+
+### Dynamic Content Configuration
+```bash
+curl -X POST "http://localhost:3004/convert" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "min_content_length": 1000,
+    "scroll_wait_time": 300,
+    "aggressive_cleaning": true
   }'
 ```
 
@@ -273,6 +334,14 @@ NODE_ENV=production
 MAX_RETRIES=2
 PAGE_TIMEOUT=30000
 MAX_CONCURRENT_PAGES=10
+
+# Cleaning Configuration
+AGGRESSIVE_CLEANING=true
+REMOVE_IMAGES=false
+
+# Dynamic Content Handling
+MIN_CONTENT_LENGTH=500
+SCROLL_WAIT_TIME=200
 ```
 
 ### PM2 Management
@@ -407,6 +476,7 @@ When using webhooks, you'll receive events in Firecrawl format:
 - Additional content cleaning options
 - Enhanced metadata extraction
 - No cloud dependency
+- Bulletproof dynamic content handling
 
 
 ## Use with N8N Code Tool
@@ -501,7 +571,9 @@ paths:
 
 ## Why SpiderForce4AI?
 
-### Advantages over Firecrawl
+<details>
+<summary><strong>Advantages over Firecrawl</strong></summary>
+
 - Lighter resource footprint
 - Faster processing speed
 - Built-in content cleaning
@@ -512,8 +584,13 @@ paths:
 - Batch processing support
 - Sitemap crawling
 - Progress tracking
+- Multi-stage dynamic content handling
+- No subscription costs
+</details>
 
-### Advantages over Jina AI
+<details>
+<summary><strong>Advantages over Jina AI</strong></summary>
+
 - No cloud dependency
 - Full control over processing
 - Custom cleaning rules
@@ -524,10 +601,14 @@ paths:
 - Parallel processing
 - Real-time updates
 - Local deployment
+- Bulletproof content extraction
+</details>
 
 ## Use Cases
 
-### AI and Machine Learning
+<details>
+<summary><strong>AI and Machine Learning</strong></summary>
+
 - Training data collection
 - RAG system content ingestion
 - NLP dataset creation
@@ -535,8 +616,11 @@ paths:
 - Sentiment analysis data
 - Knowledge base building
 - Information retrieval systems
+</details>
 
-### Content Processing
+<details>
+<summary><strong>Content Processing</strong></summary>
+
 - News article extraction
 - Blog content processing
 - Documentation conversion
@@ -544,8 +628,11 @@ paths:
 - SEO content analysis
 - Research data collection
 - Content aggregation
+</details>
 
-### Batch Processing
+<details>
+<summary><strong>Batch Processing</strong></summary>
+
 - Site-wide content extraction
 - Content migration
 - Data archiving
@@ -553,8 +640,11 @@ paths:
 - Content auditing
 - Mass data collection
 - Documentation harvesting
+</details>
 
-### Automated Workflows
+<details>
+<summary><strong>Automated Workflows</strong></summary>
+
 - Content syndication
 - Knowledge base updates
 - Dataset generation
@@ -562,10 +652,13 @@ paths:
 - Scheduled crawling
 - Bulk processing
 - Archive creation
+</details>
 
 ## Technical Details
 
-### Content Processing
+<details>
+<summary><strong>Content Processing</strong></summary>
+
 - Intelligent header/footer removal
 - Cookie consent popup handling
 - Dynamic content extraction
@@ -576,8 +669,12 @@ paths:
 - Parallel processing
 - Job monitoring
 - Progress tracking
+- Multi-stage content extraction fallbacks
+</details>
 
-### Security Features
+<details>
+<summary><strong>Security Features</strong></summary>
+
 - Browser fingerprint protection
 - Request rate limiting
 - Resource usage limits
@@ -586,8 +683,11 @@ paths:
 - Anti-bot detection measures
 - Connection security
 - Resource cleanup
+</details>
 
-### Performance Features
+<details>
+<summary><strong>Performance Features</strong></summary>
+
 - Concurrent processing
 - Resource pooling
 - Memory management
@@ -596,10 +696,14 @@ paths:
 - Batch optimization
 - Queue management
 - Progress monitoring
+- Adaptive content extraction
+</details>
 
 ## Content Quality Features
 
-### Clean Data Extraction
+<details>
+<summary><strong>Clean Data Extraction</strong></summary>
+
 - Smart boilerplate removal
 - Navigation elimination
 - Ad content filtering
@@ -607,8 +711,12 @@ paths:
 - Dynamic content handling
 - Structure preservation
 - Context maintenance
+- Adaptive cleaning strategies
+</details>
 
-### Structure Preservation
+<details>
+<summary><strong>Structure Preservation</strong></summary>
+
 - Header hierarchy maintenance
 - List formatting
 - Table structure
@@ -617,8 +725,11 @@ paths:
 - Semantic relationships
 - Link management
 - Image processing
+</details>
 
-### Metadata Enrichment
+<details>
+<summary><strong>Metadata Enrichment</strong></summary>
+
 - Title and description
 - Author information
 - Publication dates
@@ -627,8 +738,11 @@ paths:
 - Source tracking
 - Processing metadata
 - Job tracking data
+</details>
 
-### Batch Processing Features
+<details>
+<summary><strong>Batch Processing Features</strong></summary>
+
 - Progress tracking
 - Status reporting
 - Error handling
@@ -637,18 +751,24 @@ paths:
 - Queue handling
 - Webhook notifications
 - Job monitoring
+</details>
 
 ## Support and Contributing
 
-### Support
+<details>
+<summary><strong>Support</strong></summary>
+
 - Create an issue for bugs
 - Join discussions for feature requests
 - Check documentation for usage questions
 - Technical support
 - Feature suggestions
 - Bug reporting
+</details>
 
-### Contributing
+<details>
+<summary><strong>Contributing</strong></summary>
+
 - Fork the repository
 - Create feature branch
 - Submit pull request
@@ -657,6 +777,7 @@ paths:
 - Add test cases
 - Code review
 - Quality assurance
+</details>
 
 ## License
 
