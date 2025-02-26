@@ -6,6 +6,8 @@ A high-performance HTML to Markdown converter built for AI training data, RAG sy
 
 **This crawler is highly optimized for speed and performance—it does what it takes and cuts out unnecessary bs.**
 
+**No menus, no footers, no cookie consents out of the box!**
+
 ![Crawling Time Comparison](https://petertam.pro/wp-content/uploads/2025/02/comparison.png)
 
 Yeah, that's right - consistently faster than both Firecrawl and Jina AI across 30 test sites. These were randomly selected sites, accross diffrent world regions.
