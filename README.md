@@ -1,16 +1,16 @@
-# SpiderForce4AI
+# SpiderForce4AI (FireCrawl, Jina AI, Crawl4AI Alternative)
 
 > Run your own web crawler without annoying limits or insane costs. Just $10/month on any basic VPS (1GB RAM, 1 core is enough; 2GB, 2 cores is comfortable).
 
-A high-performance HTML to Markdown converter built for AI training data, RAG systems, and anyone sick of overpriced web crawling services. Let's be honest - web crawling isn't rocket science, so why are some companies charging like it is?
+A high-performance HTML to Markdown converter built for AI training data, RAG systems, and anyone sick of overpriced web crawling services. 
 
 **This crawler is highly optimized for speed and performance—it does what it takes and cuts out unnecessary bs.**
 
-![Crawling Time Comparison](https://raw.githubusercontent.com/petertamai/SpiderForce4AI/main/assets/benchmark-detail.png)
+![Crawling Time Comparison](https://petertam.pro/wp-content/uploads/2025/02/comparison.png)
 
-Yeah, that's right - consistently faster than both Firecrawl and Jina AI across 30 test sites. Numbers don't lie.
+Yeah, that's right - consistently faster than both Firecrawl and Jina AI across 30 test sites. These were randomly selected sites, accross diffrent world regions.
 
-![Average Processing Time](https://raw.githubusercontent.com/petertamai/SpiderForce4AI/main/assets/benchmark-avg.png)
+![Average Processing Time](https://petertam.pro/wp-content/uploads/2025/02/avgtime.png)
 
 **Average processing times:**
 - SpiderForce4AI: 1.69s
@@ -129,7 +129,7 @@ These settings can be adjusted to optimize for your specific use cases:
 - Set it to 0 to completely disable dynamic content handling
 </details>
 
-## Why I Built This
+## Why I Built This - My Personal Journey
 
 Web scraping and content extraction are deceptively complex. Since 2010, I've been building tools to tackle these challenges, and each year brings new obstacles: JavaScript frameworks, anti-bot systems, complex DOM structures, and ever-changing web standards.
 
@@ -567,7 +567,7 @@ paths:
           description: Internal server error
 ```
 
-## Why SpiderForce4AI?
+## Why SpiderForce4AI as Firecrawl, Jina AI, or Crawl4AI Alternative?
 
 <details>
 <summary><strong>Advantages over Firecrawl</strong></summary>
