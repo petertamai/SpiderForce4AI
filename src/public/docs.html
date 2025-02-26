@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpiderForce4AI Documentation</title>
+  <!-- Latest Daisy UI and Tailwind -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Prism.js for code highlighting -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <!-- Custom styles -->
+  <style>
+    :root {
+      --doc-code-bg: #1e293b;
+    }
+    .method-tag {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      margin-right: 0.5rem;
+    }
+    .method-get { background-color: #3abff8; color: white; }
+    .method-post { background-color: #36d399; color: white; }
+    .endpoint {
+      font-family: monospace;
+      padding: 0.25rem 0.5rem;
+      background-color: rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+    }
+    .sidebar-wrapper {
+      height: calc(100vh - 4rem);
+      overflow-y: auto;
+      position: sticky;
+      top: 4rem;
+    }
+    .main-content {
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    @media (max-width: 1023px) {
+      .main-content {
+        padding: 1rem;
+      }
+    }
+    .doc-section {
+      margin-bottom: 2.5rem;
+    }
+    /* Fix for daisy UI dark mode */
+    [data-theme="dark"] .mockup-code pre[data-prefix]::before {
+      margin-right: 1rem !important;
+    }
+    .alert-success {
+        border-color: var(--fallback-su, oklch(var(--su) / .2));
+        --tw-text-opacity: 1;
+        color: var(--fallback-suc, oklch(var(--suc) / var(--tw-text-opacity)));
+        --alert-bg: #eeeeee;
+        --alert-bg-mix: var(--fallback-b1, oklch(var(--b1) / 1));
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <div class="navbar bg-base-200 sticky top-0 z-50 h-16">
+    <div class="navbar-start">
+      <div class="dropdown lg:hidden">
+        <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" /></svg>
+        </div>
+        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+          <li><a href="#introduction">Introduction</a></li>
+          <li><a href="#installation">Installation</a></li>
+          <li><a href="#basic-conversion">API Reference</a></li>
+          <li><a href="#integrations">Integrations</a></li>
+          <li><a href="#benchmarks">Benchmarks</a></li>
+        </ul>
+      </div>
+      <a href="#" class="btn btn-ghost text-xl">🚀 SpiderForce4AI</a>
+    </div>
+    <div class="navbar-center hidden lg:flex">
+      <ul class="menu menu-horizontal px-1">
+        <li><a href="#introduction">Introduction</a></li>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#basic-conversion">API</a></li>
+        <li><a href="#integrations">Integrations</a></li>
+        <li><a href="#benchmarks">Benchmarks</a></li>
+      </ul>
+    </div>
+    <div class="navbar-end">
+      <a href="https://github.com/petertamai/SpiderForce4AI" target="_blank" class="btn btn-ghost">
+        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="fill: currentColor;"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+      </a>
+      <label class="swap swap-rotate ml-2">
+        <input type="checkbox" id="theme-toggle" class="theme-controller" value="dark" />
+        <svg class="swap-on fill-current w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"/></svg>
+        <svg class="swap-off fill-current w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z"/></svg>
+      </label>
+    </div>
+  </div>
+
+  <div class="flex flex-col lg:flex-row">
+    <!-- Sidebar -->
+    <div class="hidden lg:block w-64 bg-base-100 border-r border-base-300">
+      <div class="sidebar-wrapper p-4">
+        <ul class="menu bg-base-100 w-full rounded-box">
+          <li><a href="#introduction" class="text-primary font-medium">Introduction</a></li>
+          
+          <li>
+            <details open>
+              <summary class="font-medium">Getting Started</summary>
+              <ul>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#configuration">Configuration</a></li>
+              </ul>
+            </details>
+          </li>
+          
+          <li>
+            <details open>
+              <summary class="font-medium">API Reference</summary>
+              <ul>
+                <li><a href="#basic-conversion">Basic Conversion</a></li>
+                <li><a href="#advanced-targeting">Advanced Targeting</a></li>
+                <li><a href="#dynamic-content">Dynamic Content</a></li>
+                <li><a href="#batch-processing">Batch Processing</a></li>
+                <li><a href="#webhook-integration">Webhook Integration</a></li>
+              </ul>
+            </details>
+          </li>
+          
+          <li>
+            <details>
+              <summary class="font-medium" id="integrations">Integrations</summary>
+              <ul>
+                <li><a href="#firecrawl-compatibility">Firecrawl Compatibility</a></li>
+                <li><a href="#n8n-integration">n8n Integration</a></li>
+                <li><a href="#dify-integration">DIFY Integration</a></li>
+                <li><a href="#python-wrapper">Python Wrapper</a></li>
+              </ul>
+            </details>
+          </li>
+          
+          <li>
+            <details>
+              <summary class="font-medium">Advanced Topics</summary>
+              <ul>
+                <li><a href="#benchmarks">Benchmarks</a></li>
+                <li><a href="#performance-optimization">Performance Optimization</a></li>
+              </ul>
+            </details>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-1">
+      <div class="main-content">
+        <section id="introduction" class="doc-section">
+          <h1 class="text-4xl font-bold mb-6">SpiderForce4AI Documentation</h1>
+          
+          <div class="alert alert-info mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>SpiderForce4AI is a high-performance HTML to Markdown converter optimized for AI training data collection and RAG systems.</span>
+          </div>
+
+          <div class="mockup-browser border border-base-300 mb-6">
+            <div class="mockup-browser-toolbar">
+              <div class="input">http://localhost:3004/convert?url=https://petertam.pro</div>
+            </div>
+            <div class="px-4 py-8 bg-base-200 flex flex-col items-center">
+              <h2 class="text-2xl mb-4">Run Your Own Web Crawler</h2>
+              <p class="text-center max-w-lg mb-4">No limits. No subscriptions. Just $10/month on any basic VPS (1GB RAM, 1 core is enough).</p>
+              <div class="stats shadow">
+                <div class="stat">
+                  <div class="stat-figure text-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                  </div>
+                  <div class="stat-title">SpiderForce4AI</div>
+                  <div class="stat-value">1.69s</div>
+                  <div class="stat-desc text-success">Fastest in benchmarks</div>
+                </div>
+                
+                <div class="stat">
+                  <div class="stat-figure text-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                  </div>
+                  <div class="stat-title">Competitors</div>
+                  <div class="stat-value">3.49s+</div>
+                  <div class="stat-desc text-error">206% slower</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="installation" class="doc-section">
+          <h2 class="text-3xl font-bold mb-4">Installation</h2>
+          <p class="mb-4">SpiderForce4AI can be installed and run in multiple ways:</p>
+        
+          <div role="tablist" class="tabs tabs-lifted">
+            <!-- Docker Tab -->
+            <input type="radio" name="installation_tabs" role="tab" class="tab" aria-label="Docker" checked="checked" />
+            <div style="max-width: 825px;" role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+              <p class="mb-2">Quick start with Docker (recommended):</p>
+              <div class="mockup-code mb-4">
+                <pre data-prefix="$"><code>docker run -d --restart unless-stopped -p 3004:3004 --name spiderforce4ai petertamai/spiderforce4ai:latest</code></pre>
+                <pre data-prefix=">" class="text-success"><code>Container started successfully!</code></pre>
+              </div>
+            </div>
+            
+            <!-- GitHub Tab -->
+            <input type="radio" name="installation_tabs" role="tab" class="tab" aria-label="GitHub" />
+            <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+              <p class="mb-2">Install from GitHub repository:</p>
+              <div class="mockup-code mb-4">
+                <pre data-prefix="$"><code>git clone https://github.com/petertamai/spiderforce4ai.git</code></pre>
+                <pre data-prefix="$"><code>cd spiderforce4ai</code></pre>
+                <pre data-prefix="$"><code>npm install</code></pre>
+                <pre data-prefix="$"><code>mkdir logs</code></pre>
+                <pre data-prefix="$"><code>cp .env.example .env</code></pre>
+                <pre data-prefix="$"><code>npm install -g pm2</code></pre>
+                <pre data-prefix="$"><code>npm run start:pm2</code></pre>
+                <pre data-prefix=">" class="text-success"><code>Service started on port 3004</code></pre>
+              </div>
+            </div>
+            
+            <!-- One-Click Deploy Tab -->
+            <input  style="min-width: 150px!important;"  type="radio" name="installation_tabs" role="tab" class="tab" aria-label="One-Click Deploy" />
+            <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+              <p class="mb-2">Deploy to DigitalOcean with a single click:</p>
+              <div class="flex justify-center my-4">
+                <a href="https://cloud.digitalocean.com/apps/new?repo=https://github.com/petertamai/SpiderForce4AI/tree/main" target="_blank" class="no-underline">
+                  <img src="https://www.deploytodo.com/do-btn-blue.svg" alt="Deploy to DO" class="m-0">
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="configuration" class="doc-section">
+          <h2 class="text-3xl font-bold mb-4">Configuration</h2>
+          <p class="mb-4">SpiderForce4AI can be configured through environment variables:</p>
+
+          <div class="mockup-code mb-6">
+            <pre><code># Server Configuration
+    PORT=3004
+    NODE_ENV=production
+    MAX_RETRIES=2
+    PAGE_TIMEOUT=30000
+    MAX_CONCURRENT_PAGES=10
+
+    # Cleaning Configuration
+    AGGRESSIVE_CLEANING=true
+    REMOVE_IMAGES=false
+
+    # Dynamic Content Handling
+    MIN_CONTENT_LENGTH=500
+    SCROLL_WAIT_TIME=200
+</code></pre>
+          </div>
+          
+          <div class="overflow-x-auto mb-4">
+            <table class="table table-zebra w-full">
+              <thead>
+                <tr>
+                  <th>Variable</th>
+                  <th>Default</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>PORT</code></td>
+                  <td>3004</td>
+                  <td>Server port</td>
+                </tr>
+                <tr>
+                  <td><code>MIN_CONTENT_LENGTH</code></td>
+                  <td>500</td>
+                  <td>Minimum content length threshold (characters)</td>
+                </tr>
+                <tr>
+                  <td><code>AGGRESSIVE_CLEANING</code></td>
+                  <td>true</td>
+                  <td>Enable aggressive content cleaning</td>
+                </tr>
+                <tr>
+                  <td><code>MAX_CONCURRENT_PAGES</code></td>
+                  <td>10</td>
+                  <td>Maximum number of concurrent pages</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="basic-conversion" class="doc-section">
+          <h2 class="text-3xl font-bold mb-4">Basic Conversion</h2>
+          
+          <div class="card bg-base-100 shadow-sm mb-6 border border-base-300">
+            <div class="card-body">
+              <div class="flex items-center">
+                <span class="method-tag method-get">GET</span>
+                <span class="endpoint">/convert?url=https://petertam.pro</span>
+              </div>
+              <p class="mt-2">Convert a URL to clean Markdown format.</p>
+              
+              <div class="divider">Example Request</div>
+              
+              <div class="mockup-code mb-2">
+                <pre data-prefix="$"><code>curl "http://localhost:3004/convert?url=https://petertam.pro"</code></pre>
+              </div>
+              
+              <div class="divider">Response</div>
+              
+              <div class="mockup-code">
+                <pre><code>URL: https://petertam.pro
+
+    Title: Example Domain
+    Description: Example website for illustrative purposes
+
+    ---
+
+    # Example Domain
+
+    This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.
+
+    [More information...](https://www.iana.org/domains/example)</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="advanced-targeting" class="doc-section">
+          <h2 class="text-3xl font-bold mb-4">Advanced Targeting</h2>
+          
+          <div class="card bg-base-100 shadow-sm mb-6 border border-base-300">
+            <div class="card-body">
+              <div class="flex items-center">
+                <span class="method-tag method-post">POST</span>
+                <span class="endpoint">/convert</span>
+              </div>
+              <p class="mt-2">Extract specific content using CSS selectors.</p>
+              
+              <div class="divider">Example Request</div>
+              
+              <div class="mockup-code mb-2">
+                <pre data-prefix="$"><code>curl -X POST "http://localhost:3004/convert" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://petertam.pro",
+    "targetSelectors": [".main-content", "article", "#content"],
+    "removeSelectors": [".ads", ".sidebar", ".nav"]
+  }'</code></pre>
+              </div>
+              
+              <div class="divider">Request Parameters</div>
+              
+              <div class="overflow-x-auto">
+                <table class="table w-full">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Type</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>url</code></td>
+                      <td>string</td>
+                      <td>The URL to convert (required)</td>
+                    </tr>
+                    <tr>
+                      <td><code>targetSelectors</code></td>
+                      <td>array</td>
+                      <td>CSS selectors to target specific content elements</td>
+                    </tr>
+                    <tr>
+                      <td><code>removeSelectors</code></td>
+                      <td>array</td>
+                      <td>CSS selectors to remove unwanted elements</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="dynamic-content" class="doc-section">
+            <h2 class="text-3xl font-bold mb-4">Dynamic Content Handling</h2>
+            
+            <div class="card bg-base-100 shadow-sm mb-6 border border-base-300">
+              <div class="card-body">
+                <div class="flex items-center">
+                  <span class="method-tag method-post">POST</span>
+                  <span class="endpoint">/convert</span>
+                </div>
+                <p class="mt-2">Configure dynamic content handling parameters.</p>
+                
+                <div class="divider">Example Request</div>
+                
+                <div class="mockup-code mb-2">
+                  <pre data-prefix="$"><code>curl -X POST "http://localhost:3004/convert" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "url": "https://petertam.pro",
+              "min_content_length": 1000,
+              "scroll_wait_time": 300,
+              "aggressive_cleaning": true
+            }'</code></pre>
+                </div>
+                
+                <div class="divider">Dynamic Content Strategy</div>
+                
+                <ul class="steps steps-vertical my-4">
+                  <li class="step step-primary">
+                    <div class="ml-2 text-left">
+                      <span class="font-bold block">STAGE 0 (Default)</span>
+                      <span class="text-sm">Fast extraction with aggressive cleaning - optimized for speed</span>
+                    </div>
+                  </li>
+                  <li class="step step-primary">
+                    <div class="ml-2 text-left">
+                      <span class="font-bold block">STAGE 1 (First Fallback)</span>
+                      <span class="text-sm">If content is insufficient, re-run with scroll to the bottom, wait 200ms, then try extraction with aggressive cleaning</span>
+                    </div>
+                  </li>
+                  <li class="step step-primary">
+                    <div class="ml-2 text-left">
+                      <span class="font-bold block">STAGE 2 (Last Resort)</span>
+                      <span class="text-sm">If content is still insufficient, re-run with scroll to the bottom, wait 200ms, and disable aggressive cleaning</span>
+                    </div>
+                  </li>
+                </ul>
+                
+                <div class="alert alert-info mt-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  <div>
+                    <div class="font-bold">Auto-Adapting Extraction</div>
+                    <div class="text-sm">SpiderForce4AI automatically determines when to apply these fallback strategies based on content length.</div>
+                  </div>
+                </div>
+                
+                <div class="overflow-x-auto mt-4">
+                  <table class="table table-zebra w-full">
+                    <thead>
+                      <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><code>min_content_length</code></td>
+                        <td>number</td>
+                        <td>500</td>
+                        <td>Minimum acceptable content length in characters</td>
+                      </tr>
+                      <tr>
+                        <td><code>scroll_wait_time</code></td>
+                        <td>number</td>
+                        <td>200</td>
+                        <td>Time to wait after scrolling in milliseconds</td>
+                      </tr>
+                      <tr>
+                        <td><code>aggressive_cleaning</code></td>
+                        <td>boolean</td>
+                        <td>true</td>
+                        <td>Enable/disable aggressive cleaning</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        <section id="batch-processing" class="doc-section">
+          <h2 class="text-3xl font-bold mb-4">Batch Processing</h2>
+          
+          <div class="card bg-base-100 shadow-sm mb-6 border border-base-300">
+            <div class="card-body">
+              <div class="flex items-center">
+                <span class="method-tag method-post">POST</span>
+                <span class="endpoint">/crawl_sitemap</span>
+              </div>
+              <p class="mt-2">Process an entire website using its sitemap.</p>
+              
+              <div class="divider">Example Request</div>
+              
+              <div class="mockup-code mb-2">
+                <pre data-prefix="$"><code>curl -X POST "http://localhost:3004/crawl_sitemap" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sitemapUrl": "https://petertam.pro/sitemap.xml",
+    "targetSelectors": [".main-content", "article"],
+    "removeSelectors": [".ads", ".nav"],
+    "webhook": {
+      "url": "https://your-webhook.com/endpoint",
+      "headers": {
+        "Authorization": "Bearer your-token"
+      },
+      "progressUpdates": true,
+      "extraFields": {
+        "project": "blog-crawler",
+        "source": "sitemap"
+      }
+    }
+  }'</code></pre>
+              </div>
+              
+              <div class="divider">Response</div>
+              
+              <div class="mockup-code">
+                <pre><code class="language-json">{
+  "jobId": "job_1234567890",
+  "status": "started",
+  "config": {
+    "sitemapUrl": "https://petertam.pro/sitemap.xml",
+    "targetSelectors": [".main-content", "article"],
+    "removeSelectors": [".ads", ".nav"],
+    "webhook": {
+      "url": "https://your-webhook.com/endpoint",
+      "hasHeaders": true
+    }
+  }
+}</code></pre>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card bg-base-100 shadow-sm mb-6 border border-base-300">
+            <div class="card-body">
+              <div class="flex items-center">
+                <span class="method-tag method-post">POST</span>
+                <span class="endpoint">/crawl_urls</span>
+              </div>
+              <p class="mt-2">Process multiple URLs in batch.</p>
+              
+              <div class="divider">Example Request</div>
+              
+              <div class="mockup-code">
+                <pre data-prefix="$"><code>curl -X POST "http://localhost:3004/crawl_urls" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "urls": [
+      "https://petertam.pro/page1",
+      "https://petertam.pro/page2",
+      "https://petertam.pro/page3"
+    ],
+    "targetSelectors": [".main-content", "article"],
+    "removeSelectors": [".ads", ".nav"]
+  }'</code></pre>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card bg-base-100 shadow-sm mb-6 border border-base-300">
+            <div class="card-body">
+              <div class="flex items-center">
+                <span class="method-tag method-get">GET</span>
+                <span class="endpoint">/job/:jobId</span>
+              </div>
+              <p class="mt-2">Check status of a batch processing job.</p>
+              
+              <div class="divider">Example Request</div>
+              
+              <div class="mockup-code mb-2">
+                <pre data-prefix="$"><code>curl "http://localhost:3004/job/job_1234567890"</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="webhook-integration" class="doc-section">
+            <h2 class="text-3xl font-bold mb-4">Webhook Integration</h2>
+            
+            <div class="card bg-base-100 shadow-sm mb-6 border border-base-300">
+              <div class="card-body">
+                <div class="flex items-center">
+                  <span class="method-tag method-post">POST</span>
+                  <span class="endpoint">/convert</span>
+                </div>
+                <p class="mt-2">Convert a URL and send results to a webhook.</p>
+                
+                <div class="divider">Example Request</div>
+                
+                <div class="mockup-code mb-4">
+                  <pre data-prefix="$"><code>curl -X POST "http://localhost:3004/convert" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "url": "https://petertam.pro",
+      "targetSelectors": [".article-content"],
+      "custom_webhook": {
+        "url": "https://your-vectordb-api.com/ingest",
+        "method": "POST",
+        "headers": {
+          "Authorization": "Bearer your-token"
+        },
+        "data": {
+          "content": "##markdown##",
+          "metadata": {
+            "url": "##url##",
+            "timestamp": "##timestamp##",
+            "title": "##metadata##"
+          }
+        }
+      }
+    }'</code></pre>
+                </div>
+                
+                <div class="divider">Webhook Variables</div>
+                
+                <div class="overflow-x-auto">
+                  <table class="table w-full">
+                    <thead>
+                      <tr>
+                        <th>Variable</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><code>##markdown##</code></td>
+                        <td>The converted markdown content</td>
+                      </tr>
+                      <tr>
+                        <td><code>##url##</code></td>
+                        <td>The original URL</td>
+                      </tr>
+                      <tr>
+                        <td><code>##timestamp##</code></td>
+                        <td>The current timestamp</td>
+                      </tr>
+                      <tr>
+                        <td><code>##metadata##</code></td>
+                        <td>The extracted metadata</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+  
+          <section id="firecrawl-compatibility" class="doc-section">
+            <h2 class="text-3xl font-bold mb-4">Firecrawl API Compatibility (beta)</h2>
+            <p class="mb-4">SpiderForce4AI provides full compatibility with Firecrawl's API endpoints, allowing for easy migration:</p>
+            
+            <div class="card bg-base-100 shadow-sm mb-6 border border-base-300">
+              <div class="card-body">
+                <div class="flex items-center">
+                  <span class="method-tag method-post">POST</span>
+                  <span class="endpoint">/v1/scrape</span>
+                </div>
+                <p class="mt-2">Scrape a single URL (Firecrawl-compatible).</p>
+                
+                <div class="divider">Example Request</div>
+                
+                <div class="mockup-code mb-2">
+                  <pre data-prefix="$"><code>curl -X POST "http://localhost:3004/v1/scrape" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer YOUR_API_KEY" \
+    -d '{
+      "url": "https://petertam.pro",
+      "formats": ["markdown"]
+    }'</code></pre>
+                </div>
+                
+                <div class="divider">Response</div>
+                
+                <div class="mockup-code">
+                  <pre><code class="language-json">{
+    "success": true,
+    "data": {
+      "markdown": "# Example Domain\n\nThis domain is for use in illustrative examples...",
+      "metadata": {
+        "title": "Example Domain",
+        "description": "Example website for illustrative purposes",
+        "language": "en",
+        "sourceURL": "https://petertam.pro"
+      }
+    }
+  }</code></pre>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card bg-base-100 shadow-sm mb-6 border border-base-300">
+              <div class="card-body">
+                <div class="flex items-center">
+                  <span class="method-tag method-post">POST</span>
+                  <span class="endpoint">/v1/crawl</span>
+                </div>
+                <p class="mt-2">Crawl a sitemap (Firecrawl-compatible).</p>
+                
+                <div class="divider">Example Request</div>
+                
+                <div class="mockup-code">
+                  <pre data-prefix="$"><code>curl -X POST "http://localhost:3004/v1/crawl" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer YOUR_API_KEY" \
+    -d '{
+      "url": "https://petertam.pro/sitemap.xml",
+      "limit": 100,
+      "webhook": "https://your-webhook.com/endpoint",
+      "scrapeOptions": {
+        "formats": ["markdown"]
+      }
+    }'</code></pre>
+                </div>
+              </div>
+            </div>
+          </section>
+  
+          <section id="n8n-integration" class="doc-section">
+            <h2 class="text-3xl font-bold mb-4">n8n Integration</h2>
+            <p class="mb-4">Use SpiderForce4AI with n8n automation platform:</p>
+            
+            <div class="mockup-code mb-6">
+              <pre><code class="language-javascript">// SpiderForce4AI Tool for n8n
+  // This tool processes URLs through SpiderForce4AI and returns markdown content.
+  // The input comes as 'query' parameter containing a URL
+  
+  const SPIDERFORCE_BASE_URL = 'http://localhost:3004'; // or your cloud deployment instance URL
+  
+  try {
+      // Validate input
+      if (!query || !query.startsWith('http')) {
+          return 'Error: Invalid URL provided. URL must start with http:// or https://';
+      }
+  
+      const options = {
+          url: `${SPIDERFORCE_BASE_URL}/convert`,
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: {
+              url: query,
+              targetSelectors: ['.main-content', 'article', '#content'],
+              removeSelectors: ['.ads', '.nav', '.footer', '.header']
+          }
+      };
+  
+      const response = await this.helpers.httpRequest(options);
+      
+      // Return markdown content from response
+      return response.markdown || response.toString();
+  
+  } catch (error) {
+      return `Error processing URL: ${error.message}`;
+  }</code></pre>
+            </div>
+            
+            <div class="mockup-browser border bg-base-300">
+              <div class="mockup-browser-toolbar">
+                <div class="input">https://n8n.io/workflow</div>
+              </div>
+              <div class="flex justify-center px-4 py-5 bg-base-200">
+                <img style="width: 400px; height: auto;" class="btn" onclick="my_modal_4.showModal()" src="https://petertam.pro/wp-content/uploads/2025/02/n8n-1.png" alt="n8n Integration Example" class="rounded-lg shadow-lg max-w-full">
+                <dialog id="my_modal_4" class="modal">
+                  <div class="modal-box w-11/12 max-w-5xl">
+                   
+                    <div class="modal-action">
+                      <form method="dialog">
+                        <button class="btn">Close</button>
+                        <img src="https://petertam.pro/wp-content/uploads/2025/02/n8n-1.png">
+                       
+                      </form>
+                    </div>
+                  </div>
+                </dialog>
+
+              </div>
+            </div>
+          </section>
+  
+          <section id="dify-integration" class="doc-section">
+            <h2 class="text-3xl font-bold mb-4">DIFY Integration</h2>
+            <p class="mb-4">Use SpiderForce4AI with DIFY AI platform:</p>
+            
+            <div class="mockup-code mb-6">
+              <pre><code class="language-yaml">openapi: 3.0.0
+  info:
+    title: SpiderForce4AI Web to Markdown Converter
+    description: Convert a web page to Markdown using Dify
+    author: Piotr Tamulewicz
+    version: 1.0.0
+  
+  servers:
+    - url: http://localhost:3004
+  
+  paths:
+    /convert:
+      get:
+        summary: Convert a web page to Markdown
+        description: Retrieves the content of a web page and converts it to Markdown format
+        parameters:
+          - name: url
+            in: query
+            description: The URL of the web page to convert
+            required: true
+            schema:
+              type: string
+              format: uri
+          - name: targetSelectors
+            in: query
+            description: CSS selectors to target specific content (comma-separated)
+            required: false
+            schema:
+              type: string
+          - name: removeSelectors
+            in: query  
+            description: CSS selectors to remove unwanted content (comma-separated)
+            required: false
+            schema:
+              type: string
+        responses:
+          '200':
+            description: Successful conversion
+            content:
+              text/markdown:
+                schema:
+                  type: string
+          '400':
+            description: Bad request (missing or invalid URL)
+          '500':
+            description: Internal server error</code></pre>
+            </div>
+          </section>
+  
+          <section id="python-wrapper" class="doc-section">
+            <h2 class="text-3xl font-bold mb-4">Python Wrapper</h2>
+            <p class="mb-4">For Python developers, you can use our official Python wrapper:</p>
+            
+            <div class="flex items-center mb-4">
+              <div class="badge badge-primary mr-2">PyPI</div>
+              <a href="https://pypi.org/project/spiderforce4ai/" target="_blank" class="link link-hover">spiderforce4ai</a>
+              <code class="ml-4 bg-base-300 px-2 py-1 rounded">pip install spiderforce4ai</code>
+            </div>
+            
+            <div class="mockup-code mb-6">
+              <pre><code class="language-python">from spiderforce4ai import SpiderForce
+  
+  # Initialize SpiderForce with your instance URL
+  sf = SpiderForce(base_url="http://localhost:3004")
+  
+  # Convert a single URL
+  markdown = sf.convert_url("https://petertam.pro")
+  print(markdown)
+  
+  # Batch processing
+  urls = ["https://petertam.pro/page1", "https://petertam.pro/page2"]
+  results = sf.batch_convert(urls)
+  
+  # Process sitemap
+  job_id = sf.crawl_sitemap("https://petertam.pro/sitemap.xml")
+  status = sf.get_job_status(job_id)</code></pre>
+            </div>
+          </section>
+  
+          <section id="benchmarks" class="doc-section">
+            <h2 class="text-3xl font-bold mb-4">Benchmarks</h2>
+            <p class="mb-4">SpiderForce4AI has been benchmarked against other popular web crawling solutions:</p>
+            
+            <div class="card bg-base-100 shadow-sm mb-6 border border-base-300">
+              <div class="card-body">
+                <h3 class="text-xl font-semibold mb-4">Performance Comparison</h3>
+                
+                <div class="stats stats-vertical lg:stats-horizontal shadow mb-6 w-full">
+                  <div class="stat">
+                    <div class="stat-title">SpiderForce4AI</div>
+                    <div class="stat-value text-primary">1.69s</div>
+                    <div class="stat-desc">100% (baseline)</div>
+                  </div>
+                  
+                  <div class="stat">
+                    <div class="stat-title">Jina AI</div>
+                    <div class="stat-value">3.49s</div>
+                    <div class="stat-desc text-secondary">206% slower</div>
+                  </div>
+                  
+                  <div class="stat">
+                    <div class="stat-title">Firecrawl</div>
+                    <div class="stat-value">5.83s</div>
+                    <div class="stat-desc text-secondary">345% slower</div>
+                  </div>
+                </div>
+                
+                <div class="divider">Benchmark Charts</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <!-- First chart -->
+  <div>
+    <p class="text-center font-medium mb-2">Crawling Time Comparison</p>
+    <img 
+      src="https://petertam.pro/wp-content/uploads/2025/02/comparison.png" 
+      alt="Crawling Time Comparison" 
+      class="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+      onclick="document.getElementById('compa').showModal()"
+    >
+    <dialog id="compa" class="modal modal-bottom sm:modal-middle">
+      <div class="modal-box w-11/12 max-w-5xl h-5/6 max-h-[90vh]">
+        <h3 class="font-bold text-lg mb-4">Crawling Time Comparison</h3>
+        <div class="flex justify-center items-center h-[calc(100%-3rem)]">
+          <img 
+            src="https://petertam.pro/wp-content/uploads/2025/02/comparison.png" 
+            alt="Crawling Time Comparison" 
+            class="max-w-full max-h-full object-contain"
+          >
+        </div>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn">Close</button>
+          </form>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+  </div>
+  
+  <!-- Second chart -->
+  <div>
+    <p class="text-center font-medium mb-2">Average Processing Time</p>
+    <img 
+      src="https://petertam.pro/wp-content/uploads/2025/02/avgtime.png" 
+      alt="Average Processing Time" 
+      class="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+      onclick="document.getElementById('avgt').showModal()"
+    >
+    <dialog id="avgt" class="modal modal-bottom sm:modal-middle">
+      <div class="modal-box w-11/12 max-w-5xl h-5/6 max-h-[90vh]">
+        <h3 class="font-bold text-lg mb-4">Average Processing Time</h3>
+        <div class="flex justify-center items-center h-[calc(100%-3rem)]">
+          <img 
+            src="https://petertam.pro/wp-content/uploads/2025/02/avgtime.png" 
+            alt="Average Processing Time" 
+            class="max-w-full max-h-full object-contain"
+          >
+        </div>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn">Close</button>
+          </form>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+  </div>
+</div>
+                
+                <div class="alert alert-success mt-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span>SpiderForce4AI consistently outperforms other solutions, especially on dynamic content-heavy sites.</span>
+                </div>
+              </div>
+            </div>
+          </section>
+  
+          <section id="performance-optimization" class="doc-section">
+            <h2 class="text-3xl font-bold mb-4">Performance Optimization</h2>
+            <p class="mb-4">Tips for optimizing SpiderForce4AI performance:</p>
+            
+            <!-- Server Requirements Card -->
+            <div class="card bg-base-100 shadow-xl mb-6 w-full">
+              <div class="card-body">
+                <h2 class="card-title">Server Requirements</h2>
+                <p>Run SpiderForce4AI on virtually any server with these minimal requirements:</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  <div class="flex items-center">
+                    <div class="badge badge-primary mr-2">Minimum</div>
+                    <div>
+                      <span class="font-medium">1GB RAM, 1 CPU core</span>
+                      <div class="text-sm opacity-70">Suitable for basic usage</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="badge badge-secondary mr-2">Recommended</div>
+                    <div>
+                      <span class="font-medium">2GB RAM, 2 CPU cores</span>
+                      <div class="text-sm opacity-70">Comfortable for higher volume</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="badge badge-accent mr-2">Cost</div>
+                    <div>
+                      <span class="font-medium">~$10/month on any VPS</span>
+                      <div class="text-sm opacity-70">No premium subscriptions needed</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Configuration Tips Card -->
+            <div class="card bg-base-100 shadow-xl mb-6 w-full">
+              <div class="card-body">
+                <h2 class="card-title">Configuration Tips</h2>
+                <p>Fine-tune your setup for the optimal balance of speed and thoroughness:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <div class="font-medium">Concurrent Pages</div>
+                    <div class="text-sm opacity-70">Set <code>MAX_CONCURRENT_PAGES</code> based on available server resources</div>
+                  </div>
+                  <div>
+                    <div class="font-medium">Content Length</div>
+                    <div class="text-sm opacity-70">Adjust <code>MIN_CONTENT_LENGTH</code> to balance between speed and thoroughness</div>
+                  </div>
+                  <div>
+                    <div class="font-medium">Speed Mode</div>
+                    <div class="text-sm opacity-70">For maximum speed, set <code>MIN_CONTENT_LENGTH=0</code> to disable fallbacks</div>
+                  </div>
+                  <div>
+                    <div class="font-medium">Targeted Extraction</div>
+                    <div class="text-sm opacity-70">Use specific CSS selectors to extract only required content</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Batch Processing Card -->
+            <div class="card bg-base-100 shadow-xl mb-6 w-full">
+              <div class="card-body">
+                <h2 class="card-title">Batch Processing</h2>
+                <p>Scale up your content extraction with these batch processing tips:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <div class="font-medium">Optimal Batch Size</div>
+                    <div class="text-sm opacity-70">Process URLs in batches of 50-100 for maximum throughput</div>
+                  </div>
+                  <div>
+                    <div class="font-medium">Asynchronous Processing</div>
+                    <div class="text-sm opacity-70">Use webhooks to handle large volumes asynchronously</div>
+                  </div>
+                  <div>
+                    <div class="font-medium">Rate Limiting</div>
+                    <div class="text-sm opacity-70">Implement rate limiting when crawling multiple sites to avoid blocks</div>
+                  </div>
+                  <div>
+                    <div class="font-medium">Sitemap API</div>
+                    <div class="text-sm opacity-70">Use the sitemap API for efficient large-scale content extraction</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Advanced Performance Tuning Card -->
+            <div class="card bg-base-100 shadow-xl mb-6 w-full">
+              <div class="card-body">
+                <h2 class="card-title">Advanced Performance Tuning</h2>
+                <p>For high-volume processing and enterprise use cases, consider these additional optimizations:</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <h3 class="font-medium text-lg mb-2">Memory Management</h3>
+                    <ul class="space-y-1 pl-5 list-disc">
+                      <li>Enable browser recycling via <code>RECYCLE_BROWSER</code></li>
+                      <li>Set <code>MAX_MEMORY_USAGE</code> to trigger garbage collection</li>
+                      <li>Use selectors that target only text-heavy elements</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h3 class="font-medium text-lg mb-2">Network Optimization</h3>
+                    <ul class="space-y-1 pl-5 list-disc">
+                      <li>Use a proxy rotation service for high-volume crawling</li>
+                      <li>Set appropriate delays between requests with <code>REQUEST_DELAY</code></li>
+                      <li>Distribute crawling across multiple instances for large datasets</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <div class="alert alert-info mt-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  <span>For enterprise support and custom optimization, contact <a href="mailto:pt@petertam.pro" class="link link-hover">pt@petertam.pro</a></span>
+                </div>
+              </div>
+            </div>
+          </section>
+  
+
+
+          
+          <footer class="mt-12 p-4 footer bg-base-200 text-base-content rounded">
+            <div class="footer-center">
+              <p>SpiderForce4AI Documentation</p>
+              <p>Created and maintained by <a href="https://petertam.pro" target="_blank" class="link link-hover">Piotr Tamulewicz</a></p>
+            </div>
+          </footer>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Prism.js for code highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
+    
+    <script>
+      // Tab system
+      document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+          tab.addEventListener('click', function() {
+            // Set active tab
+            tabs.forEach(t => t.classList.remove('tab-active'));
+            this.classList.add('tab-active');
+            
+            // Show corresponding content
+            const tabId = this.getAttribute('data-tab');
+            tabContents.forEach(content => {
+              content.classList.add('hidden');
+              if (content.id === tabId + '-content') {
+                content.classList.remove('hidden');
+              }
+            });
+          });
+        });
+        
+        // Mobile sidebar functionality
+        const sidebarLinks = document.querySelectorAll('.menu a');
+        sidebarLinks.forEach(link => {
+          link.addEventListener('click', function() {
+            // Close details elements on mobile
+            if (window.innerWidth < 1024) {
+              const details = document.querySelectorAll('.menu details');
+              details.forEach(detail => {
+                if (!detail.contains(this)) {
+                  detail.removeAttribute('open');
+                }
+              });
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+  </html>

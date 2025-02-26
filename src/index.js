@@ -492,17 +492,23 @@ app.post('/crawl_sitemap', async (req, res) => {
 const crypto = require('crypto');
 
 app.get('/', async (req, res) => {
-  // Generate a random ETag
-  const etag = crypto.randomBytes(16).toString('hex');
-  const currentDate = new Date().toUTCString();
-
-  res.setHeader('X-Powered-By', 'Express');
-  //res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Date', currentDate);
-  res.setHeader('Via', '1.1 google');
-  res.setHeader('Alt-Svc', 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000');
-  res.send("SpiderForce4AI: Hello, world!");
+  try {
+    const fs = require('fs').promises;
+    const path = require('path');
+    
+    // Path to your documentation HTML file
+    const docsPath = path.join(__dirname, 'public', 'docs.html');
+    
+    // Read the HTML file
+    const html = await fs.readFile(docsPath, 'utf-8');
+    
+    // Set headers and send the HTML
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Error serving documentation:', error);
+    res.status(500).send('Error loading documentation. Please try again later.');
+  }
 });
 
 app.get('/info', async (req, res) => {
