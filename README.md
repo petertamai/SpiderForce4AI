@@ -6,11 +6,15 @@ A high-performance HTML to Markdown converter built for AI training data, RAG sy
 
 **This crawler is highly optimized for speed and performance—it does what it takes and cuts out unnecessary bs.**
 
-**No menus, no footers, no cookie consents out of the box!**
+**No menus, no footers, no cookie consents out of the box!** - Without AI, pure engineering logic!
+
+## Crawling Time Comparison
 
 ![Crawling Time Comparison](https://petertam.pro/wp-content/uploads/2025/02/comparison.png)
 
 Yeah, that's right - consistently faster than both Firecrawl and Jina AI across 30 test sites. These were randomly selected sites, accross diffrent world regions.
+
+## Average Processing Time
 
 ![Average Processing Time](https://petertam.pro/wp-content/uploads/2025/02/avgtime.png)
 
@@ -364,6 +368,37 @@ SpiderForce4AI provides full compatibility with Firecrawl's API endpoints, allow
 <details>
 <summary><strong>Firecrawl-compatible API Examples</strong></summary>
 
+#### Using FireCrawl python library
+> For now only single url scraping is supported and markdown format
+```python
+#!pip install firecrawl
+from firecrawl.firecrawl import FirecrawlApp
+
+app = FirecrawlApp(api_key="no need", api_url="http://localhost:3004")
+
+# Scrape a website:
+scrape_status = app.scrape_url(
+  'https://petertam.pro', 
+  params={'formats': ['markdown']}
+)
+print(scrape_status)
+```
+
+#### Using FireCrawl node.js library
+> For now only single url scraping is supported and markdown format
+```javascript
+import FirecrawlApp from '@mendable/firecrawl-js';
+
+const app = new FirecrawlApp({ apiKey: "fc-YOUR_API_KEY", apiUrl: "http://localhost:3004" });
+
+// Scrape a website:
+const scrapeResult = await app.scrapeUrl('https://petertam.pro', { formats: ['markdown'] });
+
+if (scrapeResult.success) {
+ console.log(scrapeResult.markdown)
+}
+```
+
 #### Single URL Scraping
 ```bash
 curl -X POST http://localhost:3004/v1/scrape \
@@ -391,60 +426,6 @@ Response:
 }
 ```
 
-#### Crawl Website
-```bash
-curl -X POST http://localhost:3004/v1/crawl \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer YOUR_API_KEY' \
-  -d '{
-    "url": "https://example.com/sitemap.xml",
-    "limit": 100,
-    "webhook": "https://your-webhook.com/endpoint",
-    "scrapeOptions": {
-      "formats": ["markdown"]
-    }
-  }'
-```
-
-Response:
-```json
-{
-  "success": true,
-  "id": "job_1234567890",
-  "url": "/v1/crawl/job_1234567890"
-}
-```
-
-#### Check Crawl Status
-```bash
-curl -X GET http://localhost:3004/v1/crawl/job_1234567890 \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer YOUR_API_KEY'
-```
-
-Response:
-```json
-{
-  "status": "completed",
-  "total": 36,
-  "completed": 36,
-  "creditsUsed": 36,
-  "expiresAt": "2024-02-23T12:00:00.000Z",
-  "next": null,
-  "data": [
-    {
-      "markdown": "# Page Title\n\nContent...",
-      "metadata": {
-        "title": "Page Title",
-        "description": "Page description",
-        "language": "en",
-        "sourceURL": "https://example.com/page1",
-        "statusCode": 200
-      }
-    }
-  ]
-}
-```
 
 #### Webhook Events
 When using webhooks, you'll receive events in Firecrawl format:
@@ -572,24 +553,7 @@ paths:
 ## Why SpiderForce4AI as Firecrawl, Jina AI, or Crawl4AI Alternative?
 
 <details>
-<summary><strong>Advantages over Firecrawl</strong></summary>
-
-- Lighter resource footprint
-- Faster processing speed
-- Built-in content cleaning
-- More flexible content targeting
-- Custom webhook integration
-- Optimized for AI/ML pipelines
-- RAG system integration
-- Batch processing support
-- Sitemap crawling
-- Progress tracking
-- Multi-stage dynamic content handling
-- No subscription costs
-</details>
-
-<details>
-<summary><strong>Advantages over Jina AI</strong></summary>
+<summary><strong>Advantages</strong></summary>
 
 - No cloud dependency
 - Full control over processing
