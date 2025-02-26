@@ -174,9 +174,23 @@ class BrowserManager {
   
       // For images, abort the actual resource load but preserve the DOM structure
       if (resourceType === 'image') {
-        // Abort the actual image request but let the HTML parse normally
         request.abort();
         return;
+      }
+  
+      // Abort JavaScript files with "cookies" in the file name
+      if (resourceType === 'script') {
+        try {
+          const parsedUrl = new URL(request.url());
+          const fileName = parsedUrl.pathname.split('/').pop().toLowerCase();
+          if (fileName.includes('cookie')) {
+            console.log(`[${url}] Aborting script request: ${request.url()}`);
+            request.abort();
+            return;
+          }
+        } catch (e) {
+          console.error('Error parsing URL for script:', request.url(), e);
+        }
       }
   
       // Block other unnecessary resources
