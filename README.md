@@ -1,116 +1,154 @@
-# SpiderForce4AI 🚀
+# SpiderForce4AI
 
-**The fastest HTML to Markdown converter for AI data collection. Period.**
+> Run your own web crawler without annoying limits or insane costs. Just $10/month on any basic VPS (1GB RAM, 1 core is enough; 2GB, 2 cores is comfortable).
 
-![Average Processing Time](https://raw.githubusercontent.com/petertamai/SpiderForce4AI/main/assets/benchmark-avg.png)
+A high-performance HTML to Markdown converter built for AI training data, RAG systems, and anyone sick of overpriced web crawling services. Let's be honest - web crawling isn't rocket science, so why are some companies charging like it is?
 
-**3.45× faster than Jina AI, 3.45× faster than Firecrawl** - Benchmark results don't lie. SpiderForce4AI delivers lightning-fast content extraction while maintaining higher quality output.
-
-A NodeJS-native web crawler built specifically for AI training data collection, RAG (Retrieval-Augmented Generation), and SEO analysis. This isn't just another crawler - it's a purpose-built tank that always delivers, with Formula 1 speed.
-
-> "It does what it takes and cuts out unnecessary bs."
-
-## Run in 30 Seconds
-
-```bash
-docker run -d --restart unless-stopped -p 3004:3004 --name spiderforce4ai petertamai/spiderforce4ai:latest
-```
-
-Then just call:
-```bash
-curl "http://localhost:3004/convert?url=https://example.com"
-```
-
-**Deploy to DigitalOcean** with one click:  
-[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/petertamai/SpiderForce4AI/tree/main)
-
-## Why SpiderForce4AI Exists
-
-I've been building web scrapers since 2010, and every year the challenges multiply: JavaScript frameworks, anti-bot systems, complex DOM structures, cookie banners - you name it.
-
-But here's the truth: **web crawling doesn't have to be expensive or complicated**. While solutions like Jina.ai and Firecrawl offer great features, they come with hefty price tags or limitations.
-
-So I built SpiderForce4AI - **a NodeJS-native crawler** (not Python wrapped in API calls) that delivers:
-- ⚡ **Raw Speed**: 3.45× faster than competitors (see benchmarks)
-- 🧠 **AI-Optimized Output**: Clean, structured markdown perfect for LLMs
-- 🛡️ **Tank-Like Reliability**: 3-stage fallback ensures content is always extracted
-- 💰 **Cost-Effective**: Run on a $10/month VPS (2GB RAM, 2 cores)
-- 🔌 **Drop-In Integration**: Works with any LLM platform or automation tool
-- 🎯 **Precision Targeting**: Extract exactly what you need
-
-<details>
-<summary><strong>🏎️ Performance Benchmarks</strong></summary>
+**This crawler is highly optimized for speed and performance—it does what it takes and cuts out unnecessary bs.**
 
 ![Crawling Time Comparison](https://raw.githubusercontent.com/petertamai/SpiderForce4AI/main/assets/benchmark-detail.png)
 
-**Average Processing Times:**
+Yeah, that's right - consistently faster than both Firecrawl and Jina AI across 30 test sites. Numbers don't lie.
+
+![Average Processing Time](https://raw.githubusercontent.com/petertamai/SpiderForce4AI/main/assets/benchmark-avg.png)
+
+**Average processing times:**
 - SpiderForce4AI: 1.69s
-- Jina AI: 3.49s
+- Jina AI: 3.49s 
 - Firecrawl: 5.83s
 
-These benchmarks were run against 30 diverse websites, from simple blogs to complex JavaScript applications. SpiderForce4AI consistently outperformed competitors, especially on dynamic content-heavy sites.
+## Super quick start with docker
+```bash
+docker run -d --restart unless-stopped -p 3004:3004 --name spiderforce2ai petertamai/spiderforce2ai:latest
+```
+Run already compiled version from docker hub. No configuration needed.
 
-The NodeJS-native architecture eliminates the overhead of API calls and cross-language communication, resulting in dramatically faster processing times.
-</details>
+```plaintext
+http://localhost:3004/convert?url=https://petertam.pro
+```
 
-## Key Features
+## One-Click Deployment
+
+### Digital Ocean
+[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/petertamai/SpiderForce4AI/tree/main)
+
+## Features
 
 <details>
 <summary><strong>⚡ Core Capabilities</strong></summary>
 
-- **Lightning-fast HTML to Markdown** - Optimized for speed and accuracy
-- **Precise content targeting** - Extract only what you need with CSS selectors
-- **Header & footer removal** - Clean content out of the box
-- **Anti-detection mechanisms** - Avoid being blocked
-- **Dynamic content handling** - 3-stage approach ensures content extraction
-- **Webhook integration** - Configure your own webhook templates
-- **Metadata extraction** - Title, description, author, etc.
-- **Automatic retry mechanism** - Always gets the job done
+- ⚡ Lightning-fast HTML to Markdown conversion
+- 🎯 Precise content targeting with multiple selectors
+- 🧹 No menus, no footers out of the box!
+- 🤖 Built-in anti-detection mechanisms
+- 🎣 Custom webhook integration - configure your own webhooks template
+- 📊 Metadata extraction
+- 🔄 Automatic retry mechanism
+- 🛡️ Bullet-proof dynamic content handling
 </details>
 
 <details>
-<summary><strong>🧠 AI Integration Features</strong></summary>
+<summary><strong>🧠 AI & RAG Features</strong></summary>
 
-- **Clean, structured content** - Perfect for AI training
-- **Context preservation** - Better embeddings for RAG systems
-- **Configurable chunking preparation** - Control the granularity
-- **Rich metadata extraction** - Enhance your ML pipelines
-- **LLM-ready output format** - No additional processing needed
+- 📚 Clean, structured content for AI training
+- 🧮 Context preservation for better embeddings
+- 📑 Automated content chunking preparation
+- 🔍 Rich metadata extraction for ML pipelines
+- 📈 Batch processing capabilities
+- 🤖 LLM-ready output format
 </details>
 
 <details>
-<summary><strong>🛡️ Bulletproof Content Extraction</strong></summary>
+<summary><strong>🔧 Advanced Features</strong></summary>
 
-SpiderForce4AI uses a sophisticated 3-stage approach to extract content:
+- 🛡️ Stealth mode with Puppeteer
+- 🚫 Built-in ad and tracker blocking
+- 🍪 Automatic cookie consent handling
+- 🧬 Dynamic content processing
+- 🎭 Browser fingerprint protection
+- 📝 Markdown optimization
+- 🔌 Webhook customization with variables
+- 🌐 Multi-stage fallback for problematic sites
+- 🚀 Smart content length detection
+</details>
+
+<details>
+<summary><strong>📦 Batch Processing Features</strong></summary>
+
+- 🌐 Sitemap crawling and parsing
+- 📦 Bulk URL processing
+- 📊 Progress tracking and reporting
+- 🔄 Parallel processing
+- 📡 Real-time webhook updates
+- 📝 Job status monitoring
+- 🎯 Customizable batch sizes
+- 🚦 Rate limiting and queuing
+</details>
+
+## Performance Highlights
+
+I built this with performance in mind. It works like a tank - reliable and unstoppable - but with the speed of a sports car:
+
+- Maintains single browser instance for optimal performance
+- Smart resource blocking for faster processing
+- Concurrent request handling
+- Memory-optimized processing
+- Automatic cleanup and resource management
+- Parallel batch processing
+- Job queuing and monitoring
+- Resource usage optimization
+- Intelligent dynamic content handling with 3-stage fallback
+
+## Dynamic Content Handling
+
+Websites are annoying. Sometimes they load content dynamically, and sometimes they try to hide their real content. SpiderForce4AI has a 3-stage approach to handle these challenges:
+
+<details>
+<summary><strong>🚀 Dynamic Content Extraction Strategy</strong></summary>
 
 1. **STAGE 0 (Default)**: Fast extraction with aggressive cleaning - optimized for speed
-2. **STAGE 1 (First Fallback)**: When content is insufficient, re-run with scroll to bottom, wait 200ms, retry extraction
-3. **STAGE 2 (Last Resort)**: If still insufficient, re-run with disabled aggressive cleaning
+2. **STAGE 1 (First Fallback)**: If content is insufficient, re-run with scroll to the bottom, wait 200ms, then try extraction with aggressive cleaning
+3. **STAGE 2 (Last Resort)**: If content is still insufficient, re-run with scroll to the bottom, wait 200ms, and disable aggressive cleaning
 
-This approach maintains speed for 98% of sites while providing bulletproof extraction for problematic pages. The system automatically adapts based on content quality.
+This approach maintains speed for the vast majority of sites while providing bulletproof extraction for problematic pages. The system automatically adapts based on content quality.
 </details>
 
 <details>
-<summary><strong>🔄 Batch Processing</strong></summary>
+<summary><strong>⚙️ Configuration Options</strong></summary>
 
-- **Sitemap crawling and parsing** - Process entire websites
-- **Bulk URL processing** - Handle lists of URLs efficiently
-- **Progress tracking and reporting** - Monitor your jobs
-- **Parallel processing** - Maximize throughput
-- **Real-time webhook updates** - Get notified as pages are processed
-</details>
-
-## Quick Start Guide
-
-<details>
-<summary><strong>Installation Options</strong></summary>
-
-### Docker (Recommended)
-```bash
-docker run -d --restart unless-stopped -p 3004:3004 --name spiderforce4ai petertamai/spiderforce4ai:latest
+```env
+# Dynamic Content Configuration
+MIN_CONTENT_LENGTH=500           # Minimum acceptable content length (characters)
+SCROLL_WAIT_TIME=200             # Milliseconds to wait after scrolling
+AGGRESSIVE_CLEANING=true         # Enable/disable aggressive cleaning by default
 ```
 
-### From GitHub
+These settings can be adjusted to optimize for your specific use cases:
+- Reduce `MIN_CONTENT_LENGTH` to prioritize speed
+- Increase it to ensure more thorough content extraction
+- Set it to 0 to completely disable dynamic content handling
+</details>
+
+## Why I Built This
+
+Web scraping and content extraction are deceptively complex. Since 2010, I've been building tools to tackle these challenges, and each year brings new obstacles: JavaScript frameworks, anti-bot systems, complex DOM structures, and ever-changing web standards.
+
+Web crawling doesn't have to be expensive or complicated. While solutions like Jina.ai and Firecrawl offer great features, they often come with hefty price tags or limitations. This project gives you a free, ready-to-use crawler backed by years of real-world scraping experience - no strings attached.
+
+Why NodeJS? Simple - when you're scraping with Puppeteer, adding a Python wrapper just adds overhead. This is built to be fast from the ground up, without any unnecessary communication between languages or services.
+
+## Python Wrapper
+Need more control over the crawling process? Check out my Python wrapper for SpiderForce4AI.
+- Parrallel crawling 
+- LLM integration and data extraction
+- AI post-processing - crawl and extract data to any format you need with a support of LLMs
+- Webhook integration
+
+[![PyPI version](https://badge.fury.io/py/spiderforce4ai.svg)](https://badge.fury.io/py/spiderforce4ai)
+[https://pypi.org/project/spiderforce4ai/](https://pypi.org/project/spiderforce4ai/)
+
+## Installation from github
+
 ```bash
 # Clone repository
 git clone https://github.com/petertamai/spiderforce4ai.git
@@ -133,12 +171,10 @@ npm install -g pm2
 # Start with PM2
 npm run start:pm2
 ```
-</details>
 
-<details>
-<summary><strong>Basic API Usage</strong></summary>
+## API Usage
 
-### Convert a URL to Markdown
+### Basic Conversion
 ```bash
 curl "http://localhost:3004/convert?url=https://example.com"
 ```
@@ -154,7 +190,7 @@ curl -X POST "http://localhost:3004/convert" \
   }'
 ```
 
-### Configure Dynamic Content Handling
+### Dynamic Content Configuration
 ```bash
 curl -X POST "http://localhost:3004/convert" \
   -H "Content-Type: application/json" \
@@ -165,12 +201,27 @@ curl -X POST "http://localhost:3004/convert" \
     "aggressive_cleaning": true
   }'
 ```
-</details>
 
-<details>
-<summary><strong>Batch Processing</strong></summary>
+### AI Data Collection
+```bash
+curl -X POST "http://localhost:3004/convert" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "targetSelectors": [
+      "article",
+      ".main-content",
+      ".blog-post"
+    ],
+    "removeSelectors": [
+      ".ads",
+      ".comments",
+      ".related-posts"
+    ]
+  }'
+```
 
-### Crawl a Sitemap
+### Sitemap Crawling
 ```bash
 curl -X POST "http://localhost:3004/crawl_sitemap" \
   -H "Content-Type: application/json" \
@@ -182,32 +233,46 @@ curl -X POST "http://localhost:3004/crawl_sitemap" \
       "url": "https://your-webhook.com/endpoint",
       "headers": {
         "Authorization": "Bearer your-token"
+      },
+      "progressUpdates": true,
+      "extraFields": {
+        "project": "blog-crawler",
+        "source": "sitemap"
       }
     }
   }'
 ```
 
-### Process Multiple URLs
+### Batch URL Processing
 ```bash
 curl -X POST "http://localhost:3004/crawl_urls" \
   -H "Content-Type: application/json" \
   -d '{
     "urls": [
       "https://example.com/page1",
-      "https://example.com/page2"
+      "https://example.com/page2",
+      "https://example.com/page3"
     ],
-    "targetSelectors": [".main-content", "article"]
+    "targetSelectors": [".main-content", "article"],
+    "removeSelectors": [".ads", ".nav"],
+    "webhook": {
+      "url": "https://your-webhook.com/endpoint",
+      "headers": {
+        "Authorization": "Bearer your-token"
+      },
+      "progressUpdates": true,
+      "extraFields": {
+        "batchId": "custom-batch-1",
+        "priority": "high"
+      }
+    }
   }'
 ```
 
-### Check Job Status
+### Job Status Checking
 ```bash
 curl "http://localhost:3004/job/job_1234567890"
 ```
-</details>
-
-<details>
-<summary><strong>Integration Examples</strong></summary>
 
 ### RAG System Integration
 ```bash
@@ -234,101 +299,31 @@ curl -X POST "http://localhost:3004/convert" \
   }'
 ```
 
-### n8n Integration
-```javascript
-// SpiderForce4AI Tool for n8n
-const SPIDERFORCE_BASE_URL = 'http://localhost:3004';
-
-try {
-    if (!query || !query.startsWith('http')) {
-        return 'Error: Invalid URL provided';
+### Webhook with Progress Updates
+```bash
+curl -X POST "http://localhost:3004/crawl_urls" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "urls": ["https://example.com/page1"],
+    "targetSelectors": [".content"],
+    "webhook": {
+      "url": "https://your-api.com/webhook",
+      "headers": {
+        "Authorization": "Bearer token",
+        "X-Custom-Header": "value"
+      },
+      "progressUpdates": true,
+      "extraFields": {
+        "project": "my-crawler",
+        "source": "custom"
+      }
     }
-
-    const options = {
-        url: `${SPIDERFORCE_BASE_URL}/convert`,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: {
-            url: query,
-            targetSelectors: ['.main-content', 'article', '#content']
-        }
-    };
-
-    const response = await this.helpers.httpRequest(options);
-    return response.markdown || response.toString();
-} catch (error) {
-    return `Error processing URL: ${error.message}`;
-}
-```
-
-### DIFY Integration
-```yaml
-openapi: 3.0.0
-info:
-  title: SpiderForce4AI Web to Markdown Converter
-  description: Convert a web page to Markdown using Dify
-  author: Piotr Tamulewicz
-  version: 1.0.0
-
-servers:
-  - url: http://localhost:3004
-
-paths:
-  /convert:
-    get:
-      summary: Convert a web page to Markdown
-      parameters:
-        - name: url
-          in: query
-          description: The URL of the web page to convert
-          required: true
-          schema:
-            type: string
-            format: uri
-      responses:
-        '200':
-          description: Successful conversion
-          content:
-            text/markdown:
-              schema:
-                type: string
-```
-</details>
-
-<details>
-<summary><strong>Firecrawl API Compatibility</strong></summary>
-
-SpiderForce4AI provides full compatibility with Firecrawl's API endpoints, allowing for easy migration:
-
-### Single URL Scraping
-```bash
-curl -X POST http://localhost:3004/v1/scrape \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer YOUR_API_KEY' \
-  -d '{
-    "url": "https://example.com",
-    "formats": ["markdown"]
   }'
 ```
-
-### Crawl Website
-```bash
-curl -X POST http://localhost:3004/v1/crawl \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer YOUR_API_KEY' \
-  -d '{
-    "url": "https://example.com/sitemap.xml",
-    "limit": 100,
-    "webhook": "https://your-webhook.com/endpoint"
-  }'
-```
-</details>
 
 ## Configuration
 
-<details>
-<summary><strong>Environment Variables</strong></summary>
-
+### Environment Variables
 ```env
 PORT=3004
 NODE_ENV=production
@@ -344,11 +339,8 @@ REMOVE_IMAGES=false
 MIN_CONTENT_LENGTH=500
 SCROLL_WAIT_TIME=200
 ```
-</details>
 
-<details>
-<summary><strong>PM2 Management</strong></summary>
-
+### PM2 Management
 ```bash
 # Start service
 npm run start:pm2
@@ -362,71 +354,439 @@ npm run restart:pm2
 # Stop service
 npm run stop:pm2
 ```
-</details>
 
-## Why Choose SpiderForce4AI?
+## Firecrawl API Compatibility (beta)
 
-<details>
-<summary><strong>vs. Firecrawl</strong></summary>
-
-- **343% faster processing** (1.69s vs 5.83s average)
-- **No subscription costs** - run on your own infrastructure
-- **More reliable content extraction** with 3-stage fallback
-- **Better targeting options** for complex pages
-- **No rate limits or credits** to manage
-- **Full API compatibility** for easy migration
-</details>
+SpiderForce4AI provides full compatibility with Firecrawl's API endpoints, allowing for easy migration from Firecrawl to SpiderForce4AI.
 
 <details>
-<summary><strong>vs. Jina AI</strong></summary>
+<summary><strong>Firecrawl-compatible API Examples</strong></summary>
 
-- **206% faster processing** (1.69s vs 3.49s average)
-- **No cloud dependency** - works offline
-- **NodeJS-native** (not Python wrapped in API calls)
-- **Lower latency** for real-time applications
-- **Fine-grained control** over extraction process
-- **Direct RAG integration** options
+#### Single URL Scraping
+```bash
+curl -X POST http://localhost:3004/v1/scrape \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer YOUR_API_KEY' \  # Any API key
+  -d '{
+    "url": "https://example.com",
+    "formats": ["markdown"]
+  }'
+```
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "markdown": "# Markdown Content",
+    "metadata": {
+      "title": "Page Title",
+      "description": "Page description",
+      "language": "en",
+      "sourceURL": "https://example.com"
+    }
+  }
+}
+```
+
+#### Crawl Website
+```bash
+curl -X POST http://localhost:3004/v1/crawl \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -d '{
+    "url": "https://example.com/sitemap.xml",
+    "limit": 100,
+    "webhook": "https://your-webhook.com/endpoint",
+    "scrapeOptions": {
+      "formats": ["markdown"]
+    }
+  }'
+```
+
+Response:
+```json
+{
+  "success": true,
+  "id": "job_1234567890",
+  "url": "/v1/crawl/job_1234567890"
+}
+```
+
+#### Check Crawl Status
+```bash
+curl -X GET http://localhost:3004/v1/crawl/job_1234567890 \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer YOUR_API_KEY'
+```
+
+Response:
+```json
+{
+  "status": "completed",
+  "total": 36,
+  "completed": 36,
+  "creditsUsed": 36,
+  "expiresAt": "2024-02-23T12:00:00.000Z",
+  "next": null,
+  "data": [
+    {
+      "markdown": "# Page Title\n\nContent...",
+      "metadata": {
+        "title": "Page Title",
+        "description": "Page description",
+        "language": "en",
+        "sourceURL": "https://example.com/page1",
+        "statusCode": 200
+      }
+    }
+  ]
+}
+```
+
+#### Webhook Events
+When using webhooks, you'll receive events in Firecrawl format:
+
+```json
+{
+  "status": "completed",
+  "totalCount": 36,
+  "creditsUsed": 36,
+  "expiresAt": "2024-02-23T12:00:00.000Z",
+  "data": [
+    {
+      "markdown": "# Page Content",
+      "metadata": {
+        "title": "Page Title",
+        "description": "Page Description",
+        "language": "en",
+        "sourceURL": "https://example.com/page",
+        "statusCode": 200
+      }
+    }
+  ]
+}
+```
+</details>
+
+#####  Key differences from Firecrawl:
+- No rate limiting or credit system
+- Faster processing with local deployment
+- Additional content cleaning options
+- Enhanced metadata extraction
+- No cloud dependency
+- Bulletproof dynamic content handling
+
+
+## Use with N8N Code Tool
+
+```javascript
+// SpiderForce4AI Tool
+// This tool processes URLs through SpiderForce4AI and returns markdown content.
+// The input comes as 'query' parameter containing a URL
+
+const SPIDERFORCE_BASE_URL = 'http://localhost:3004'; // or your cloud deployment instance URL
+
+try {
+    // Validate input
+    if (!query || !query.startsWith('http')) {
+        return 'Error: Invalid URL provided. URL must start with http:// or https://';
+    }
+
+    const options = {
+        url: `${SPIDERFORCE_BASE_URL}/convert`,
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: {
+            url: query,
+            targetSelectors: ['.main-content', 'article', '#content'],
+            removeSelectors: ['.ads', '.nav', '.footer', '.header']
+        }
+    };
+
+    const response = await this.helpers.httpRequest(options);
+    
+    // Return markdown content from response
+    return response.markdown || response.toString();
+
+} catch (error) {
+    return `Error processing URL: ${error.message}`;
+}
+```
+
+## Use with DIFY (or any Open AI - YAML format)
+
+```yaml
+openapi: 3.0.0
+info:
+  title: SpiderForce4AI Web to Markdown Converter
+  description: Convert a web page to Markdown using Dify
+  author: Piotr Tamulewicz
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3004
+
+paths:
+  /convert:
+    get:
+      summary: Convert a web page to Markdown
+      description: Retrieves the content of a web page and converts it to Markdown format
+      parameters:
+        - name: url
+          in: query
+          description: The URL of the web page to convert
+          required: true
+          schema:
+            type: string
+            format: uri
+        - name: targetSelectors
+          in: query
+          description: CSS selectors to target specific content (comma-separated)
+          required: false
+          schema:
+            type: string
+        - name: removeSelectors
+          in: query  
+          description: CSS selectors to remove unwanted content (comma-separated)
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful conversion
+          content:
+            text/markdown:
+              schema:
+                type: string
+        '400':
+          description: Bad request (missing or invalid URL)
+        '500':
+          description: Internal server error
+```
+
+## Why SpiderForce4AI?
+
+<details>
+<summary><strong>Advantages over Firecrawl</strong></summary>
+
+- Lighter resource footprint
+- Faster processing speed
+- Built-in content cleaning
+- More flexible content targeting
+- Custom webhook integration
+- Optimized for AI/ML pipelines
+- RAG system integration
+- Batch processing support
+- Sitemap crawling
+- Progress tracking
+- Multi-stage dynamic content handling
+- No subscription costs
 </details>
 
 <details>
-<summary><strong>vs. Python-based Scrapers</strong></summary>
+<summary><strong>Advantages over Jina AI</strong></summary>
 
-- **NodeJS-native architecture** eliminates cross-language overhead
-- **Built on Puppeteer** for superior JavaScript handling
-- **Better performance** for dynamic content
-- **Lightweight memory footprint** - run on smaller servers
-- **Faster cold start times**
+- No cloud dependency
+- Full control over processing
+- Custom cleaning rules
+- Webhook integration
+- Lower latency
+- Direct RAG integration
+- Customizable content structure
+- Parallel processing
+- Real-time updates
+- Local deployment
+- Bulletproof content extraction
 </details>
 
-## Python Wrapper
+## Use Cases
 
-Need more control? Use our Python wrapper for SpiderForce4AI:
-- Parallel crawling capabilities
-- LLM integration and data extraction
-- AI post-processing pipeline
-- Advanced webhook management
+<details>
+<summary><strong>AI and Machine Learning</strong></summary>
 
-[![PyPI version](https://badge.fury.io/py/spiderforce4ai.svg)](https://badge.fury.io/py/spiderforce4ai)
-[https://pypi.org/project/spiderforce4ai/](https://pypi.org/project/spiderforce4ai/)
+- Training data collection
+- RAG system content ingestion
+- NLP dataset creation
+- Content classification
+- Sentiment analysis data
+- Knowledge base building
+- Information retrieval systems
+</details>
 
-## Who Created This?
+<details>
+<summary><strong>Content Processing</strong></summary>
 
-I'm [Piotr Tamulewicz](https://petertam.pro), and I've been building web scrapers professionally since 2010. 
+- News article extraction
+- Blog content processing
+- Documentation conversion
+- Web content archiving
+- SEO content analysis
+- Research data collection
+- Content aggregation
+</details>
 
-SpiderForce4AI is my contribution to the AI community - after years of seeing companies charge exorbitant prices for crawling capabilities, I wanted to provide a high-performance, open-source alternative that anyone can use.
+<details>
+<summary><strong>Batch Processing</strong></summary>
 
-**My goal:** Make high-quality web content extraction accessible to everyone building AI systems, regardless of budget.
+- Site-wide content extraction
+- Content migration
+- Data archiving
+- Competitive analysis
+- Content auditing
+- Mass data collection
+- Documentation harvesting
+</details>
 
-This project is part of my broader vision to contribute to modern AI development with practical, performance-focused tools based on real-world experience.
+<details>
+<summary><strong>Automated Workflows</strong></summary>
+
+- Content syndication
+- Knowledge base updates
+- Dataset generation
+- Content monitoring
+- Scheduled crawling
+- Bulk processing
+- Archive creation
+</details>
+
+## Technical Details
+
+<details>
+<summary><strong>Content Processing</strong></summary>
+
+- Intelligent header/footer removal
+- Cookie consent popup handling
+- Dynamic content extraction
+- Ad and tracker blocking
+- Resource optimization
+- Content structure preservation
+- Clean text chunking
+- Parallel processing
+- Job monitoring
+- Progress tracking
+- Multi-stage content extraction fallbacks
+</details>
+
+<details>
+<summary><strong>Security Features</strong></summary>
+
+- Browser fingerprint protection
+- Request rate limiting
+- Resource usage limits
+- Error handling and recovery
+- Safe shutdown procedures
+- Anti-bot detection measures
+- Connection security
+- Resource cleanup
+</details>
+
+<details>
+<summary><strong>Performance Features</strong></summary>
+
+- Concurrent processing
+- Resource pooling
+- Memory management
+- Connection reuse
+- Smart retries
+- Batch optimization
+- Queue management
+- Progress monitoring
+- Adaptive content extraction
+</details>
+
+## Content Quality Features
+
+<details>
+<summary><strong>Clean Data Extraction</strong></summary>
+
+- Smart boilerplate removal
+- Navigation elimination
+- Ad content filtering
+- Comment section removal
+- Dynamic content handling
+- Structure preservation
+- Context maintenance
+- Adaptive cleaning strategies
+</details>
+
+<details>
+<summary><strong>Structure Preservation</strong></summary>
+
+- Header hierarchy maintenance
+- List formatting
+- Table structure
+- Code block handling
+- Quote preservation
+- Semantic relationships
+- Link management
+- Image processing
+</details>
+
+<details>
+<summary><strong>Metadata Enrichment</strong></summary>
+
+- Title and description
+- Author information
+- Publication dates
+- Categories and tags
+- SEO elements
+- Source tracking
+- Processing metadata
+- Job tracking data
+</details>
+
+<details>
+<summary><strong>Batch Processing Features</strong></summary>
+
+- Progress tracking
+- Status reporting
+- Error handling
+- Retry mechanisms
+- Resource management
+- Queue handling
+- Webhook notifications
+- Job monitoring
+</details>
+
+## Support and Contributing
+
+<details>
+<summary><strong>Support</strong></summary>
+
+- Create an issue for bugs
+- Join discussions for feature requests
+- Check documentation for usage questions
+- Technical support
+- Feature suggestions
+- Bug reporting
+</details>
+
+<details>
+<summary><strong>Contributing</strong></summary>
+
+- Fork the repository
+- Create feature branch
+- Submit pull request
+- Follow coding standards
+- Write documentation
+- Add test cases
+- Code review
+- Quality assurance
+</details>
 
 ## License
 
 MIT License
 
-## Star ⭐ If You Like It!
+## Author
 
-If SpiderForce4AI has helped your project, please consider giving it a star on GitHub. It helps others discover this tool and motivates continued development.
+Created and maintained by [Piotr Tamulewicz](https://petertam.pro)
+
+This is just one of several projects I'm releasing to help improve the AI development ecosystem. If you find this useful, consider giving it a star or reaching out to collaborate on future projects.
 
 ---
 
-*Keywords: web scraping, content extraction, html to markdown, firecrawl alternative, jina ai alternative, web crawler, content processor, html parser, markdown converter, web content extractor, RAG system, AI training data, retrieval augmented generation, SEO analysis, LLM data preparation, machine learning pipeline, clean text extraction, sitemap crawler, batch processing, webhook integration, parallel processing, content harvesting, data collection, automated workflows*
+Keywords: web scraping, content extraction, html to markdown, firecrawl alternative, jina ai alternative, web crawler, content processor, html parser, markdown converter, web content extractor, RAG system, AI training data, retrieval augmented generation, SEO analysis, LLM data preparation, machine learning pipeline, clean text extraction, sitemap crawler, batch processing, webhook integration, parallel processing, content harvesting, data collection, automated workflows
