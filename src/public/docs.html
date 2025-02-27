@@ -748,8 +748,8 @@
           },
           body: {
               url: query,
-              targetSelectors: ['.main-content', 'article', '#content'],
-              removeSelectors: ['.ads', '.nav', '.footer', '.header']
+             // targetSelectors: ['.main-content', 'article', '#content'],
+             // removeSelectors: ['.ads', '.nav', '.footer', '.header']
           }
       };
   
@@ -1154,6 +1154,105 @@
           });
         });
       });
+
+// Script to dynamically replace localhost URLs with the current host
+document.addEventListener('DOMContentLoaded', function() {
+  // Get the current origin (protocol + hostname + port)
+  const currentOrigin = window.location.origin;
+  const defaultOrigin = 'http://localhost:3004';
+  
+  // Skip if we're actually on localhost:3004
+  if (currentOrigin === defaultOrigin) {
+    console.log('Running on default host, no replacement needed');
+    return;
+  }
+  
+  console.log(`Replacing ${defaultOrigin} with ${currentOrigin} throughout the documentation`);
+  
+  // Function to replace text in an element and its children
+  function replaceTextInElement(element) {
+    // Skip script tags to avoid modifying our own script
+    if (element.tagName === 'SCRIPT') {
+      return;
+    }
+    
+    // Handle text nodes
+    if (element.nodeType === Node.TEXT_NODE) {
+      if (element.textContent.includes(defaultOrigin)) {
+        element.textContent = element.textContent.replace(new RegExp(defaultOrigin, 'g'), currentOrigin);
+      }
+      return;
+    }
+    
+    // Handle attributes that might contain URLs
+    if (element.nodeType === Node.ELEMENT_NODE) {
+      const urlAttributes = ['href', 'src', 'action', 'data-url'];
+      
+      urlAttributes.forEach(attr => {
+        if (element.hasAttribute(attr)) {
+          const attrValue = element.getAttribute(attr);
+          if (attrValue.includes(defaultOrigin)) {
+            element.setAttribute(
+              attr, 
+              attrValue.replace(new RegExp(defaultOrigin, 'g'), currentOrigin)
+            );
+          }
+        }
+      });
+      
+      // Handle inline styles with URLs
+      if (element.style && element.style.cssText) {
+        if (element.style.cssText.includes(defaultOrigin)) {
+          element.style.cssText = element.style.cssText.replace(
+            new RegExp(defaultOrigin, 'g'), 
+            currentOrigin
+          );
+        }
+      }
+      
+      // Special handling for code blocks to ensure they display correctly
+      if (element.tagName === 'PRE' || element.tagName === 'CODE') {
+        if (element.innerHTML.includes(defaultOrigin)) {
+          element.innerHTML = element.innerHTML.replace(
+            new RegExp(defaultOrigin, 'g'), 
+            currentOrigin
+          );
+        }
+      }
+    }
+    
+    // Process child nodes recursively
+    if (element.childNodes && element.childNodes.length > 0) {
+      element.childNodes.forEach(replaceTextInElement);
+    }
+  }
+  
+  // Start the replacement from the document body
+  replaceTextInElement(document.body);
+  
+  // Update page title if needed
+  if (document.title.includes(defaultOrigin)) {
+    document.title = document.title.replace(new RegExp(defaultOrigin, 'g'), currentOrigin);
+  }
+  
+  // Handle dynamically loaded content
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      if (mutation.type === 'childList') {
+        mutation.addedNodes.forEach(node => {
+          replaceTextInElement(node);
+        });
+      }
+    });
+  });
+  
+  // Start observing the document for dynamic changes
+  observer.observe(document.body, { 
+    childList: true, 
+    subtree: true 
+  });
+});
+
     </script>
   </body>
   </html>
