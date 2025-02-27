@@ -843,96 +843,96 @@
             
             <div class="mockup-code mb-6">
               <pre><code class="language-python">
-                from spiderforce4ai import SpiderForce4AI, CrawlConfig
-                import requests
-                from pathlib import Path
-                
-                # Define extraction template structure
-                extraction_template = """
-                {
-                    "Title": "Extract the main title of the content",
-                    "MetaDescription": "Extract a search-friendly meta description (under 160 characters)",
-                    "KeyPoints": ["Extract 3-5 key points from the content"],
-                    "Categories": ["Extract relevant categories for this content"],
-                    "ReadingTimeMinutes": "Estimate reading time in minutes"
-                }
-                """
-                
-                # Define a custom webhook function
-                def post_extraction_webhook(extraction_result):
-                    """Send extraction results to a webhook and return transformed data."""
-                    # Add custom fields or transform the data as needed
-                    payload = {
-                        "url": extraction_result.get("url", ""),
-                        "title": extraction_result.get("Title", ""),
-                        "description": extraction_result.get("MetaDescription", ""),
-                        "key_points": extraction_result.get("KeyPoints", []),
-                        "categories": extraction_result.get("Categories", []),
-                        "reading_time": extraction_result.get("ReadingTimeMinutes", ""),
-                        "processed_at": extraction_result.get("timestamp", "")
-                    }
-                    
-                    # Send to webhook (example using a different webhook than the main one)
-                    try:
-                        response = requests.post(
-                            "https://webhook.site/your-extraction-webhook-id",
-                            json=payload,
-                            headers={
-                                "Authorization": "Bearer extraction-token",
-                                "Content-Type": "application/json"
-                            },
-                            timeout=10
-                        )
-                        print(f"Extraction webhook sent: Status {response.status_code}")
-                    except Exception as e:
-                        print(f"Extraction webhook error: {str(e)}")
-                    
-                    # Return the transformed data (will be stored in result.extraction_result)
-                    return payload
-                
-                # Initialize crawler
-                spider = SpiderForce4AI("http://localhost:3004")
-                
-                # Configure with post-extraction and webhooks
-                config = CrawlConfig(
-                    # Basic crawling settings
-                    target_selector="article",
-                    remove_selectors=[".ads", ".navigation", ".comments"],
-                    max_concurrent_requests=5,
-                    
-                    # Regular webhook for crawl results
-                    webhook_url="https://webhook.site/your-crawl-webhook-id",
-                    webhook_headers={
-                        "Authorization": "Bearer crawl-token",
-                        "Content-Type": "application/json"
-                    },
-                    
-                    # Post-extraction LLM processing
-                    post_extraction_agent={
-                        "model": "gpt-4-turbo",  # Or another compatible model
-                        "api_key": "your-api-key-here",
-                        "max_tokens": 1000,
-                        "temperature": 0.3,
-                        "response_format": "json_object",  # Request JSON response format
-                        "messages": [
-                            {
-                                "role": "system",
-                                "content": f"Extract the following information from the content. Return ONLY valid JSON, no explanations:\n\n{extraction_template}"
-                            },
-                            {
-                                "role": "user",
-                                "content": "{here_markdown_content}"  # Will be replaced with actual content
-                            }
-                        ]
-                    },
-                    # Save combined extraction results
-                    post_extraction_agent_save_to_file="extraction_results.json",
-                    # Custom function to transform and send extraction webhook
-                    post_agent_transformer_function=post_extraction_webhook
-                )
-                
-                # Crawl a sitemap with both regular and post-extraction webhooks
-                results = spider.crawl_sitemap_server_parallel("https://petertam.pro/sitemap.xml", config)
+from spiderforce4ai import SpiderForce4AI, CrawlConfig
+import requests
+from pathlib import Path
+
+# Define extraction template structure
+extraction_template = """
+{
+    "Title": "Extract the main title of the content",
+    "MetaDescription": "Extract a search-friendly meta description (under 160 characters)",
+    "KeyPoints": ["Extract 3-5 key points from the content"],
+    "Categories": ["Extract relevant categories for this content"],
+    "ReadingTimeMinutes": "Estimate reading time in minutes"
+}
+"""
+
+# Define a custom webhook function
+def post_extraction_webhook(extraction_result):
+    """Send extraction results to a webhook and return transformed data."""
+    # Add custom fields or transform the data as needed
+    payload = {
+        "url": extraction_result.get("url", ""),
+        "title": extraction_result.get("Title", ""),
+        "description": extraction_result.get("MetaDescription", ""),
+        "key_points": extraction_result.get("KeyPoints", []),
+        "categories": extraction_result.get("Categories", []),
+        "reading_time": extraction_result.get("ReadingTimeMinutes", ""),
+        "processed_at": extraction_result.get("timestamp", "")
+    }
+    
+    # Send to webhook (example using a different webhook than the main one)
+    try:
+        response = requests.post(
+            "https://webhook.site/your-extraction-webhook-id",
+            json=payload,
+            headers={
+                "Authorization": "Bearer extraction-token",
+                "Content-Type": "application/json"
+            },
+            timeout=10
+        )
+        print(f"Extraction webhook sent: Status {response.status_code}")
+    except Exception as e:
+        print(f"Extraction webhook error: {str(e)}")
+    
+    # Return the transformed data (will be stored in result.extraction_result)
+    return payload
+
+# Initialize crawler
+spider = SpiderForce4AI("http://localhost:3004")
+
+# Configure with post-extraction and webhooks
+config = CrawlConfig(
+    # Basic crawling settings
+    target_selector="article",
+    remove_selectors=[".ads", ".navigation", ".comments"],
+    max_concurrent_requests=5,
+    
+    # Regular webhook for crawl results
+    webhook_url="https://webhook.site/your-crawl-webhook-id",
+    webhook_headers={
+        "Authorization": "Bearer crawl-token",
+        "Content-Type": "application/json"
+    },
+    
+    # Post-extraction LLM processing
+    post_extraction_agent={
+        "model": "gpt-4-turbo",  # Or another compatible model
+        "api_key": "your-api-key-here",
+        "max_tokens": 1000,
+        "temperature": 0.3,
+        "response_format": "json_object",  # Request JSON response format
+        "messages": [
+            {
+                "role": "system",
+                "content": f"Extract the following information from the content. Return ONLY valid JSON, no explanations:\n\n{extraction_template}"
+            },
+            {
+                "role": "user",
+                "content": "{here_markdown_content}"  # Will be replaced with actual content
+            }
+        ]
+    },
+    # Save combined extraction results
+    post_extraction_agent_save_to_file="extraction_results.json",
+    # Custom function to transform and send extraction webhook
+    post_agent_transformer_function=post_extraction_webhook
+)
+
+# Crawl a sitemap with both regular and post-extraction webhooks
+results = spider.crawl_sitemap_server_parallel("https://petertam.pro/sitemap.xml", config)
               </code></pre>
             </div>
           </section>
