@@ -1253,153 +1253,232 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// Script to add copy buttons to all code blocks
-document.addEventListener('DOMContentLoaded', function() {
-  // Find all mockup-code elements
-  const codeBlocks = document.querySelectorAll('.mockup-code');
-  
-  codeBlocks.forEach(block => {
-    // Create the copy button element
-    const copyButton = document.createElement('button');
-    copyButton.className = 'copy-button';
-    copyButton.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-      </svg>
-    `;
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Find all mockup-code elements
+    const codeBlocks = document.querySelectorAll('.mockup-code');
     
-    // Style the button
-    copyButton.style.position = 'absolute';
-    copyButton.style.top = '8px';
-    copyButton.style.right = '8px';
-    copyButton.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-    copyButton.style.color = 'white';
-    copyButton.style.border = 'none';
-    copyButton.style.borderRadius = '4px';
-    copyButton.style.padding = '4px';
-    copyButton.style.cursor = 'pointer';
-    copyButton.style.zIndex = '10';
-    copyButton.style.transition = 'all 0.2s ease';
-    
-    // Ensure the parent has position relative for absolute positioning
-    block.style.position = 'relative';
-    
-    // Add hover effect
-    copyButton.addEventListener('mouseover', function() {
-      this.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-    });
-    
-    copyButton.addEventListener('mouseout', function() {
-      this.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-    });
-    
-    // Add click event to copy the code
-    copyButton.addEventListener('click', function() {
-      // Get all the code from the pre > code elements, ignoring prefix
-      const codeElements = block.querySelectorAll('pre > code');
-      let textToCopy = '';
+    codeBlocks.forEach(block => {
+      // Create the copy button element
+      const copyButton = document.createElement('button');
+      copyButton.className = 'copy-button';
+      copyButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      `;
       
-      codeElements.forEach(codeEl => {
-        // Get the text without the prefix (if present)
-        const text = codeEl.textContent;
-        textToCopy += text + '\n';
+      // Style the button
+      copyButton.style.position = 'absolute';
+      copyButton.style.top = '8px';
+      copyButton.style.right = '8px';
+      copyButton.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+      copyButton.style.color = 'white';
+      copyButton.style.border = 'none';
+      copyButton.style.borderRadius = '4px';
+      copyButton.style.padding = '4px';
+      copyButton.style.cursor = 'pointer';
+      copyButton.style.zIndex = '10';
+      copyButton.style.transition = 'all 0.2s ease';
+      
+      // Ensure the parent has position relative for absolute positioning
+      block.style.position = 'relative';
+      
+      // Add hover effect
+      copyButton.addEventListener('mouseover', function() {
+        this.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
       });
       
-      // Copy to clipboard
-      navigator.clipboard.writeText(textToCopy.trim())
-        .then(() => {
-          // Show success state
-          const originalHTML = this.innerHTML;
-          this.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          `;
-          this.style.backgroundColor = '#36d399'; // Success color
-          
-          // Reset after 2 seconds
-          setTimeout(() => {
-            this.innerHTML = originalHTML;
-            this.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-          }, 2000);
-        })
-        .catch(err => {
-          console.error('Failed to copy: ', err);
-          // Show error state
-          const originalHTML = this.innerHTML;
-          this.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          `;
-          this.style.backgroundColor = '#f87272'; // Error color
-          
-          // Reset after 2 seconds
-          setTimeout(() => {
-            this.innerHTML = originalHTML;
-            this.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-          }, 2000);
+      copyButton.addEventListener('mouseout', function() {
+        this.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+      });
+      
+      // Add click event to copy the code
+      copyButton.addEventListener('click', function() {
+        // Get all the code from the pre > code elements, ignoring prefix
+        const codeElements = block.querySelectorAll('pre > code');
+        let textToCopy = '';
+        
+        codeElements.forEach(codeEl => {
+          // Get the text without the prefix (if present)
+          const text = codeEl.textContent;
+          textToCopy += text + '\n';
         });
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(textToCopy.trim())
+          .then(() => {
+            // Show success state
+            const originalHTML = this.innerHTML;
+            this.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            `;
+            this.style.backgroundColor = '#36d399'; // Success color
+            
+            // Reset after 2 seconds
+            setTimeout(() => {
+              this.innerHTML = originalHTML;
+              this.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+            }, 2000);
+          })
+          .catch(err => {
+            console.error('Failed to copy: ', err);
+            // Show error state
+            const originalHTML = this.innerHTML;
+            this.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            `;
+            this.style.backgroundColor = '#f87272'; // Error color
+            
+            // Reset after 2 seconds
+            setTimeout(() => {
+              this.innerHTML = originalHTML;
+              this.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+            }, 2000);
+          });
+      });
+      
+      // Add the button to the code block
+      block.appendChild(copyButton);
     });
     
-    // Add the button to the code block
-    block.appendChild(copyButton);
-  });
-  
-  // Apply styles to the document
-  const style = document.createElement('style');
-  style.textContent = `
-    /* Dark mode adjustments */
-    [data-theme="dark"] .copy-button {
-      background-color: rgba(255, 255, 255, 0.2);
-      color: rgba(255, 255, 255, 0.8);
-    }
-    
-    [data-theme="dark"] .copy-button:hover {
-      background-color: rgba(255, 255, 255, 0.3);
-    }
-    
-    /* Animation for button click */
-    .copy-button:active {
-      transform: scale(0.95);
-    }
-  `;
-  document.head.appendChild(style);
-  
-  // Observer for dynamically added code blocks
-  const observer = new MutationObserver(mutations => {
-    mutations.forEach(mutation => {
-      if (mutation.type === 'childList') {
-        mutation.addedNodes.forEach(node => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            const newCodeBlocks = node.querySelectorAll ? node.querySelectorAll('.mockup-code') : [];
-            newCodeBlocks.forEach(block => {
-              // Check if this block already has a copy button
-              if (!block.querySelector('.copy-button')) {
-                // Create a new copy button (same code as above)
-                const copyButton = document.createElement('button');
-                copyButton.className = 'copy-button';
-                // ... rest of the button creation code
-                // This is simplified for brevity, would need the full code in an actual implementation
-              }
-            });
-          }
-        });
+    // Apply styles to the document
+    const style = document.createElement('style');
+    style.textContent = `
+      /* Dark mode adjustments */
+      [data-theme="dark"] .copy-button {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.8);
       }
+      
+      [data-theme="dark"] .copy-button:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+      
+      /* Animation for button click */
+      .copy-button:active {
+        transform: scale(0.95);
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Observer for dynamically added code blocks
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const newCodeBlocks = node.querySelectorAll ? node.querySelectorAll('.mockup-code') : [];
+              newCodeBlocks.forEach(block => {
+                // Check if this block already has a copy button
+                if (!block.querySelector('.copy-button')) {
+                  // Create a new copy button
+                  const copyButton = document.createElement('button');
+                  copyButton.className = 'copy-button';
+                  copyButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  `;
+                  
+                  // Style the button
+                  copyButton.style.position = 'absolute';
+                  copyButton.style.top = '8px';
+                  copyButton.style.right = '8px';
+                  copyButton.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                  copyButton.style.color = 'white';
+                  copyButton.style.border = 'none';
+                  copyButton.style.borderRadius = '4px';
+                  copyButton.style.padding = '4px';
+                  copyButton.style.cursor = 'pointer';
+                  copyButton.style.zIndex = '10';
+                  copyButton.style.transition = 'all 0.2s ease';
+                  
+                  // Ensure the parent has position relative for absolute positioning
+                  block.style.position = 'relative';
+                  
+                  // Add hover effect
+                  copyButton.addEventListener('mouseover', function() {
+                    this.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                  });
+                  
+                  copyButton.addEventListener('mouseout', function() {
+                    this.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                  });
+                  
+                  // Add click event to copy the code
+                  copyButton.addEventListener('click', function() {
+                    const codeElements = block.querySelectorAll('pre > code');
+                    let textToCopy = '';
+                    
+                    codeElements.forEach(codeEl => {
+                      const text = codeEl.textContent;
+                      textToCopy += text + '\n';
+                    });
+                    
+                    navigator.clipboard.writeText(textToCopy.trim())
+                      .then(() => {
+                        const originalHTML = this.innerHTML;
+                        this.innerHTML = `
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        `;
+                        this.style.backgroundColor = '#36d399';
+                        
+                        setTimeout(() => {
+                          this.innerHTML = originalHTML;
+                          this.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                        }, 2000);
+                      })
+                      .catch(err => {
+                        console.error('Failed to copy: ', err);
+                        const originalHTML = this.innerHTML;
+                        this.innerHTML = `
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        `;
+                        this.style.backgroundColor = '#f87272';
+                        
+                        setTimeout(() => {
+                          this.innerHTML = originalHTML;
+                          this.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                        }, 2000);
+                      });
+                  });
+                  
+                  // Add the button to the code block
+                  block.appendChild(copyButton);
+                }
+              });
+            }
+          });
+        }
+      });
+    });
+    
+    // Start observing the document
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true 
     });
   });
-  
-  // Start observing the document
-  observer.observe(document.body, { 
-    childList: true, 
-    subtree: true 
-  });
-});
+ 
 
     </script>
   </body>
