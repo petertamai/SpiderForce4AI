@@ -354,9 +354,7 @@
                 <pre data-prefix="$"><code>curl -X POST "http://localhost:3004/convert" \
   -H "Content-Type: application/json" \
   -d '{
-    "url": "https://petertam.pro",
-    "targetSelectors": [".main-content", "article", "#content"],
-    "removeSelectors": [".ads", ".sidebar", ".nav"]
+    "url": "https://petertam.pro"
   }'</code></pre>
               </div>
               
@@ -503,8 +501,6 @@
   -H "Content-Type: application/json" \
   -d '{
     "sitemapUrl": "https://petertam.pro/sitemap.xml",
-    "targetSelectors": [".main-content", "article"],
-    "removeSelectors": [".ads", ".nav"],
     "webhook": {
       "url": "https://your-webhook.com/endpoint",
       "headers": {
@@ -527,8 +523,6 @@
   "status": "started",
   "config": {
     "sitemapUrl": "https://petertam.pro/sitemap.xml",
-    "targetSelectors": [".main-content", "article"],
-    "removeSelectors": [".ads", ".nav"],
     "webhook": {
       "url": "https://your-webhook.com/endpoint",
       "hasHeaders": true
@@ -557,9 +551,7 @@
       "https://petertam.pro/page1",
       "https://petertam.pro/page2",
       "https://petertam.pro/page3"
-    ],
-    "targetSelectors": [".main-content", "article"],
-    "removeSelectors": [".ads", ".nav"]
+    ]
   }'</code></pre>
               </div>
             </div>
@@ -600,7 +592,6 @@
     -H "Content-Type: application/json" \
     -d '{
       "url": "https://petertam.pro",
-      "targetSelectors": [".article-content"],
       "custom_webhook": {
         "url": "https://your-vectordb-api.com/ingest",
         "method": "POST",
@@ -1253,7 +1244,8 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-
+<script>
+  // Script to add copy buttons to all code blocks
   document.addEventListener('DOMContentLoaded', function() {
     // Find all mockup-code elements
     const codeBlocks = document.querySelectorAll('.mockup-code');
