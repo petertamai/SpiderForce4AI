@@ -252,7 +252,8 @@ app.get('/convert', async (req, res) => {
       aggressive_cleaning,
       remove_images,
       aggressiveCleaning,
-      removeImages
+      removeImages,
+      nocache // Add nocache parameter
     } = req.query;
     
     if (!url) {
@@ -261,7 +262,7 @@ app.get('/convert', async (req, res) => {
         usage: {
           basic: '/convert?url=https://example.com',
           withSelectors: '/convert?url=https://example.com&targetSelectors=.main-content,.article',
-          withConfig: '/convert?url=https://example.com&aggressive_cleaning=false&remove_images=true'
+          withConfig: '/convert?url=https://example.com&aggressive_cleaning=false&remove_images=true&nocache=true'
         }
       });
     }
@@ -272,13 +273,13 @@ app.get('/convert', async (req, res) => {
       aggressive_cleaning,
       remove_images,
       aggressiveCleaning,
-      removeImages
+      removeImages,
+      nocache: nocache === 'true' // Convert string to boolean
     };
 
     const formattedUrl = validateAndFormatUrl(url);
     
     // Create a temporary job for this request
-    const concurrentCrawler = require('./utils/concurrent-crawler');
     const tempJob = {
       id: `temp_${Date.now()}`,
       config: options,
@@ -304,7 +305,6 @@ app.get('/convert', async (req, res) => {
   }
 });
 
-
 app.post('/', (req, res) => {
     res.json({ "result": "pong" });
   });
@@ -322,6 +322,7 @@ app.post('/convert', async (req, res) => {
       remove_images,
       aggressiveCleaning,
       removeImages,
+      nocache, // Add nocache parameter
       custom_webhook 
     } = req.body;
     
@@ -334,6 +335,7 @@ app.post('/convert', async (req, res) => {
           removeSelectors: ['.ads', '.nav'],
           aggressive_cleaning: false,
           remove_images: true,
+          nocache: true, // Add to example
           custom_webhook: {
             url: 'https://your-webhook.com/endpoint',
             method: 'POST',
@@ -351,13 +353,13 @@ app.post('/convert', async (req, res) => {
       aggressive_cleaning,
       remove_images,
       aggressiveCleaning,
-      removeImages
+      removeImages,
+      nocache: nocache === true // Convert to boolean if needed
     };
 
     const formattedUrl = validateAndFormatUrl(url);
     
     // Create a temporary job for this request
-    const concurrentCrawler = require('./utils/concurrent-crawler');
     const tempJob = {
       id: `temp_${Date.now()}`,
       config: options,
@@ -388,7 +390,8 @@ app.post('/convert', async (req, res) => {
         webhook_result: webhookResult,
         config: {
           aggressive_cleaning: options.aggressive_cleaning,
-          remove_images: options.remove_images
+          remove_images: options.remove_images,
+          nocache: options.nocache
         }
       });
     } else {
@@ -405,7 +408,6 @@ app.post('/convert', async (req, res) => {
       });
   }
 });
-
 // Crawl sitemap endpoint
 app.post('/crawl_sitemap', async (req, res) => {
   try {
@@ -414,13 +416,14 @@ app.post('/crawl_sitemap', async (req, res) => {
       targetSelectors, 
       removeSelectors,
       webhook,
-      maxConcurrent, // New parameter for concurrency
-      batchSize,     // New parameter for batch processing
+      maxConcurrent,
+      batchSize,
       processingDelay,
       retryCount,
       retryDelay,
       aggressive_cleaning,
-      remove_images
+      remove_images,
+      nocache // Add nocache parameter
     } = req.body;
 
     if (!sitemapUrl) {
@@ -430,24 +433,15 @@ app.post('/crawl_sitemap', async (req, res) => {
           sitemapUrl: "https://example.com/sitemap.xml",
           targetSelectors: [".main-content", "article"],
           removeSelectors: [".ads", ".nav"],
-          maxConcurrent: 5, // Add this to your example
-          batchSize: 10,     // Add this to your example
-          webhook: {
-            url: "https://your-webhook.com/endpoint",
-            headers: {
-              "Authorization": "Bearer token"
-            },
-            progressUpdates: true,
-            extraFields: {
-              project: "my-crawler",
-              source: "sitemap"
-            }
-          }
+          maxConcurrent: 5,
+          batchSize: 10,
+          nocache: true, // Add to example
+          webhook: {/* ... */}
         }
       });
     }
 
-    // Use the concurrent crawler instead of the old crawler handler
+    // Use the concurrent crawler
     const jobResult = await concurrentCrawler.createJob({
       sitemapUrl,
       targetSelectors,
@@ -459,7 +453,8 @@ app.post('/crawl_sitemap', async (req, res) => {
       retryCount,
       retryDelay,
       aggressive_cleaning,
-      remove_images
+      remove_images,
+      nocache // Pass through to job
     });
 
     res.json({
@@ -478,7 +473,6 @@ app.post('/crawl_sitemap', async (req, res) => {
     });
   }
 });
-
   
   // Crawl multiple URLs endpoint
   app.post('/crawl_urls', async (req, res) => {
@@ -488,13 +482,14 @@ app.post('/crawl_sitemap', async (req, res) => {
         targetSelectors, 
         removeSelectors,
         webhook,
-        maxConcurrent, // New parameter for concurrency
-        batchSize,     // New parameter for batch processing
+        maxConcurrent,
+        batchSize,
         processingDelay,
         retryCount,
         retryDelay,
         aggressive_cleaning,
-        remove_images
+        remove_images,
+        nocache // Add nocache parameter
       } = req.body;
   
       if (!urls || !Array.isArray(urls) || urls.length === 0) {
@@ -507,24 +502,15 @@ app.post('/crawl_sitemap', async (req, res) => {
             ],
             targetSelectors: [".main-content", "article"],
             removeSelectors: [".ads", ".nav"],
-            maxConcurrent: 3, // Add this to your example
-            batchSize: 5,     // Add this to your example
-            webhook: {
-              url: "https://your-webhook.com/endpoint",
-              headers: {
-                "Authorization": "Bearer token"
-              },
-              progressUpdates: true,
-              extraFields: {
-                project: "my-crawler",
-                source: "url-list"
-              }
-            }
+            maxConcurrent: 3,
+            batchSize: 5,
+            nocache: true, // Add to example
+            webhook: {/* ... */}
           }
         });
       }
   
-      // Use the concurrent crawler instead of the old crawler handler
+      // Use the concurrent crawler
       const jobResult = await concurrentCrawler.createJob({
         urls,
         targetSelectors,
@@ -536,7 +522,8 @@ app.post('/crawl_sitemap', async (req, res) => {
         retryCount,
         retryDelay,
         aggressive_cleaning,
-        remove_images
+        remove_images,
+        nocache // Pass through to job
       });
   
       res.json({

@@ -24,7 +24,8 @@ services:
       - ./logs:/usr/src/app/logs
       - ./crawl_reports:/usr/src/app/crawl_reports
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy  # Wait for Redis to be healthy
     networks:
       - spiderforce_network
 
@@ -37,6 +38,12 @@ services:
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]  # Check if Redis responds to ping
+      interval: 5s                        # Check every 5 seconds
+      timeout: 3s                         # Timeout after 3 seconds
+      retries: 5                          # Retry 5 times before failing
+      start_period: 10s                   # Give Redis 10s to start initially
     networks:
       - spiderforce_network
 
