@@ -35,6 +35,23 @@ Run already compiled version from docker hub. No configuration needed.
 http://localhost:3004/convert?url=https://petertam.pro
 ```
 
+## Quick Start with Docker Compose (Redis Included)
+
+For optimal performance with Redis caching:
+
+```bash
+# Clone repository
+git clone https://github.com/petertamai/spiderforce4ai.git
+
+# Enter directory
+cd spiderforce4ai
+
+# Start with Docker Compose (includes Redis)
+docker-compose up -d
+```
+
+Check out the [Concurrent Crawling with Redis](#concurrent-crawling-with-redis) section for more details.
+
 ## One-Click Deployment
 
 ### Digital Ocean
@@ -93,6 +110,19 @@ http://localhost:3004/convert?url=https://petertam.pro
 - 🚦 Rate limiting and queuing
 </details>
 
+<details>
+<summary><strong>🚀 Concurrent Crawling Features</strong></summary>
+
+- ⚡ True concurrent URL processing (5-10x faster)
+- 📦 Intelligent batch processing
+- 💾 Redis-powered caching system
+- 🔄 Automatic retry with configurable backoff
+- 📊 Real-time progress tracking
+- 🛑 Job cancellation support
+- 📈 System-wide metrics monitoring
+- 🧩 Memory-optimized processing
+</details>
+
 ## Performance Highlights
 
 I built this with performance in mind. It works like a tank - reliable and unstoppable - but with the speed of a sports car:
@@ -106,6 +136,7 @@ I built this with performance in mind. It works like a tank - reliable and unsto
 - Job queuing and monitoring
 - Resource usage optimization
 - Intelligent dynamic content handling with 3-stage fallback
+- Redis-powered caching for 10-17x faster repeat requests
 
 ## Dynamic Content Handling
 
@@ -136,6 +167,38 @@ These settings can be adjusted to optimize for your specific use cases:
 - Increase it to ensure more thorough content extraction
 - Set it to 0 to completely disable dynamic content handling
 </details>
+
+## Concurrent Crawling with Redis
+
+SpiderForce4AI now includes powerful concurrent crawling capabilities with Redis caching to dramatically improve performance and efficiency:
+
+### Redis Configuration
+
+SpiderForce4AI supports three Redis modes:
+
+1. **Internal Redis** (`USE_REDIS=internal`): Uses a Redis instance specified by `REDIS_HOST`, `REDIS_PORT`, etc.
+2. **External Redis** (`USE_REDIS=external`): Connects to an external Redis instance using `EXTERNAL_REDIS_URL`
+3. **No Redis** (`USE_REDIS=none`): Disables Redis and falls back to in-memory LRU cache
+
+Configure these settings in your `.env` file:
+
+```bash
+# Redis Configuration
+USE_REDIS=external
+EXTERNAL_REDIS_URL=redis://default:password@your-redis-host:6379
+
+# Cache TTL Configuration
+REDIS_CACHE_TTL=3600     # Redis cache expiration in seconds (default: 1 hour)
+LRU_CACHE_TTL=3600000    # LRU cache expiration in milliseconds (default: 1 hour)
+```
+
+### Performance Impact
+
+Enabling concurrency and Redis caching can dramatically improve processing speed:
+
+- **Sequential Processing**: ~1.69s per URL
+- **Concurrent (5 workers)**: ~0.34s per URL (5x faster)
+- **Concurrent with Redis**: ~0.1s per cached URL (17x faster)
 
 ## Advanced Python Wrapper Available
 Need more control over the crawling process? Check out my Python wrapper for SpiderForce4AI.
@@ -186,6 +249,11 @@ npm run start:pm2
 ```bash
 curl "http://localhost:3004/convert?url=https://example.com"
 ```
+> If cache is enabled, but you need to force a fresh fetch, use `nocache=true` in the query string.
+
+```bash
+curl "http://localhost:3004/convert?url=https://example.com&nocache=true"
+```
 
 ### Advanced Content Targeting
 ```bash
@@ -197,6 +265,7 @@ curl -X POST "http://localhost:3004/convert" \
     "removeSelectors": [".ads", ".sidebar", ".nav"]
   }'
 ```
+> to bypass cache, add "nocache": true
 
 ### Dynamic Content Configuration
 ```bash
@@ -209,6 +278,7 @@ curl -X POST "http://localhost:3004/convert" \
     "aggressive_cleaning": true
   }'
 ```
+> to bypass cache, add "nocache": true
 
 ### AI Data Collection
 ```bash
@@ -228,8 +298,10 @@ curl -X POST "http://localhost:3004/convert" \
     ]
   }'
 ```
+> target selectors will be joined, then remove selectors applied. Only url is required, the other flags are optional.
 
-### Sitemap Crawling
+
+### Sitemap Crawling with Concurrency
 ```bash
 curl -X POST "http://localhost:3004/crawl_sitemap" \
   -H "Content-Type: application/json" \
@@ -237,6 +309,9 @@ curl -X POST "http://localhost:3004/crawl_sitemap" \
     "sitemapUrl": "https://example.com/sitemap.xml",
     "targetSelectors": [".main-content", "article"],
     "removeSelectors": [".ads", ".nav"],
+    "maxConcurrent": 5,
+    "batchSize": 10,
+    "processingDelay": 500,
     "webhook": {
       "url": "https://your-webhook.com/endpoint",
       "headers": {
@@ -250,8 +325,11 @@ curl -X POST "http://localhost:3004/crawl_sitemap" \
     }
   }'
 ```
+> Only sitemapUrl is required, the flags are optional.
+> maxConcurrent defaults to 5 if not specified.
+> Please be respectful with maxConcurrent when crawling a single domain name, many shared hostings may not handle it well.
 
-### Batch URL Processing
+### Batch URL Processing with Concurrency
 ```bash
 curl -X POST "http://localhost:3004/crawl_urls" \
   -H "Content-Type: application/json" \
@@ -263,6 +341,9 @@ curl -X POST "http://localhost:3004/crawl_urls" \
     ],
     "targetSelectors": [".main-content", "article"],
     "removeSelectors": [".ads", ".nav"],
+    "maxConcurrent": 3,
+    "batchSize": 5,
+    "retryCount": 2,
     "webhook": {
       "url": "https://your-webhook.com/endpoint",
       "headers": {
@@ -276,11 +357,20 @@ curl -X POST "http://localhost:3004/crawl_urls" \
     }
   }'
 ```
-> Webhook post mode
 
-### Job Status Checking
+### Job Monitoring and Management
 ```bash
+# Get job status
 curl "http://localhost:3004/job/job_1234567890"
+
+# Get detailed results
+curl "http://localhost:3004/job/job_1234567890/results?full=true"
+
+# Cancel a running job
+curl -X POST "http://localhost:3004/job/job_1234567890/cancel"
+
+# Get system metrics
+curl "http://localhost:3004/metrics"
 ```
 
 ### RAG System Integration
@@ -330,6 +420,46 @@ curl -X POST "http://localhost:3004/crawl_urls" \
   }'
 ```
 
+### Running Multiple Independent Jobs
+
+```bash
+# Start job 1 - Sitemap crawl with 5 concurrent workers
+curl -X POST "http://localhost:3004/crawl_sitemap" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sitemapUrl": "https://site1.com/sitemap.xml",
+    "maxConcurrent": 5,
+    "webhook": {
+      "url": "https://your-webhook.com/job1",
+      "extraFields": {"jobName": "site1-crawl"}
+    }
+  }'
+
+# Start job 2 - URL crawl with 3 concurrent workers
+curl -X POST "http://localhost:3004/crawl_urls" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "urls": ["https://site2.com/page1", "https://site2.com/page2"],
+    "maxConcurrent": 3,
+    "webhook": {
+      "url": "https://your-webhook.com/job2",
+      "extraFields": {"jobName": "site2-crawl"}
+    }
+  }'
+```
+
+## Concurrency Configuration Options
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| maxConcurrent | Maximum concurrent URL processing | 5 |
+| batchSize | Number of URLs in each processing batch | 10 |
+| processingDelay | Delay between batch processing (ms) | 100 |
+| retryCount | Number of retry attempts for failed URLs | 2 |
+| retryDelay | Delay between retry attempts (ms) | 3000 |
+| nocache | Bypass cache and fetch fresh content | false |
+| webhook.progressUpdates | Send progress webhooks during processing | false |
+
 ## Configuration
 
 ### Environment Variables
@@ -347,6 +477,30 @@ REMOVE_IMAGES=false
 # Dynamic Content Handling
 MIN_CONTENT_LENGTH=500
 SCROLL_WAIT_TIME=200
+
+# Redis Configuration
+# Options: 'internal', 'external', 'none'
+USE_REDIS=internal
+
+# Internal Redis Configuration (used when USE_REDIS=internal)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DB=0
+
+# External Redis Configuration (used when USE_REDIS=external)
+EXTERNAL_REDIS_URL=redis://default:password@your-redis-host:6379
+
+# Cache TTL Configuration
+REDIS_CACHE_TTL=3600     # Redis cache expiration in seconds (default: 1 hour)
+LRU_CACHE_TTL=3600000    # LRU cache expiration in milliseconds (default: 1 hour)
+
+# Concurrency Settings
+DEFAULT_MAX_CONCURRENT=5
+DEFAULT_BATCH_SIZE=10
+DEFAULT_PROCESSING_DELAY=100
+DEFAULT_RETRY_COUNT=2
+DEFAULT_RETRY_DELAY=3000
 ```
 
 ### PM2 Management
@@ -462,6 +616,8 @@ When using webhooks, you'll receive events in Firecrawl format:
 - Enhanced metadata extraction
 - No cloud dependency
 - Bulletproof dynamic content handling
+- Redis-powered caching
+- True concurrent processing
 
 
 ## Use with N8N Code Tool
@@ -553,6 +709,55 @@ paths:
           description: Internal server error
 ```
 
+## Docker Compose with Redis
+
+For optimal performance with Redis caching, use this Docker Compose configuration:
+
+```yaml
+version: '3.8'
+
+services:
+  spiderforce4ai:
+    image: petertamai/spiderforce4ai:latest
+    container_name: spiderforce4ai
+    restart: unless-stopped
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=production
+      - PORT=3004
+      - USE_REDIS=internal
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_CACHE_TTL=3600
+    volumes:
+      - ./logs:/usr/src/app/logs
+      - ./crawl_reports:/usr/src/app/crawl_reports
+    depends_on:
+      - redis
+    networks:
+      - spiderforce_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: spiderforce_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - spiderforce_network
+
+networks:
+  spiderforce_network:
+    driver: bridge
+
+volumes:
+  redis_data:
+```
+
 ## Why SpiderForce4AI as Firecrawl, Jina AI, or Crawl4AI Alternative?
 
 <details>
@@ -569,6 +774,8 @@ paths:
 - Real-time updates
 - Local deployment
 - Bulletproof content extraction
+- Redis-powered caching
+- True concurrent processing
 </details>
 
 ## Use Cases
@@ -664,6 +871,8 @@ paths:
 - Queue management
 - Progress monitoring
 - Adaptive content extraction
+- Redis caching
+- Distributed processing capabilities
 </details>
 
 ## Content Quality Features
@@ -758,4 +967,4 @@ This is just one of several projects I'm releasing to help improve the AI develo
 
 ---
 
-Keywords: web scraping, content extraction, html to markdown, firecrawl alternative, jina ai alternative, web crawler, content processor, html parser, markdown converter, web content extractor, RAG system, AI training data, retrieval augmented generation, SEO analysis, LLM data preparation, machine learning pipeline, clean text extraction, sitemap crawler, batch processing, webhook integration, parallel processing, content harvesting, data collection, automated workflows
+Keywords: web scraping, content extraction, html to markdown, firecrawl alternative, jina ai alternative, web crawler, content processor, html parser, markdown converter, web content extractor, RAG system, AI training data, retrieval augmented generation, SEO analysis, LLM data preparation, machine learning pipeline, clean text extraction, sitemap crawler, batch processing, webhook integration, parallel processing, content harvesting, data collection, automated workflows, concurrent crawling, redis cache, distributed crawling

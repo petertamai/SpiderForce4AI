@@ -1,18 +1,21 @@
-// src/utils/firecrawl.js
+// src/utils/firecrawl.js - Enhanced with concurrent crawling
 const browserManager = require('./browser-manager');
 const { cleanContent } = require('./cleaner.js');
 const { convertToMarkdown } = require('./converter.js');
 const { extractMetadata } = require('./metadata');
 const crawlerHandler = require('./crawl_urls_sitemap');
 const firecrawlWebhook = require('./webhook_firecrawl');
+const concurrentCrawler = require('./concurrent-crawler');
 const axios = require('axios');
 const { XMLParser } = require('fast-xml-parser');
+
 // Pre-initialize browser
 browserManager.getBrowser().then(() => {
     console.log('Browser pre-initialized and ready');
   }).catch(error => {
     console.error('Failed to pre-initialize browser:', error);
   });
+  
 class FirecrawlAdapter {
   constructor() {
     this.defaultTimeout = 30000;
@@ -72,7 +75,8 @@ class FirecrawlAdapter {
       let urls = [];
       
       if (url.toLowerCase().includes('sitemap')) {
-        urls = await this._fetchSitemapUrls(url);
+        // Use the concurrent crawler for better sitemap handling
+        urls = await concurrentCrawler.fetchSitemapUrls(url);
       } else {
         urls = await this._discoverLinks(url, true);
       }
@@ -83,6 +87,7 @@ class FirecrawlAdapter {
       const webhookConfig = webhook ? {
         url: typeof webhook === 'string' ? webhook : webhook.url,
         headers: webhook.headers || {},
+        progressUpdates: true, // Enable progress updates
         sendWebhook: async (job) => {
           console.log('[Firecrawl] Sending webhook for job:', job.id);
           return await firecrawlWebhook.sendWebhook(
@@ -93,24 +98,30 @@ class FirecrawlAdapter {
         }
       } : null;
 
+      // Enhanced job configuration with concurrency
       const jobConfig = {
         urls,
         targetSelectors: ['.main-content', 'article', '#content'],
         removeSelectors: ['.ads', '.nav', '.footer', '.header'],
         webhook: webhookConfig,
-        formats: scrapeOptions.formats || ['markdown']
+        formats: scrapeOptions.formats || ['markdown'],
+        maxConcurrent: scrapeOptions.maxConcurrent || 5,
+        batchSize: scrapeOptions.batchSize || 10,
+        processingDelay: scrapeOptions.processingDelay || 100
       };
 
       console.log('[Firecrawl] Creating job with webhook:', webhookConfig?.url);
-      await crawlerHandler.createJob({
+      
+      // Use the concurrent crawler instead of the old crawler handler
+      const result = await concurrentCrawler.createJob({
         ...jobConfig,
         id: jobId
       });
 
       return {
         success: true,
-        id: jobId,
-        url: `/v1/crawl/${jobId}`
+        id: result.jobId,
+        url: `/v1/crawl/${result.jobId}`
       };
 
     } catch (error) {
@@ -120,45 +131,8 @@ class FirecrawlAdapter {
   }
 
   _fetchSitemapUrls = async (sitemapUrl) => {
-    try {
-      const response = await axios.get(sitemapUrl, {
-        headers: {
-          'User-Agent': 'SpiderForce4AI/1.0',
-          'Accept': 'application/xml,text/xml,*/*'
-        },
-        timeout: this.defaultTimeout
-      });
-
-      const parsed = this.parser.parse(response.data);
-      let urls = [];
-
-      if (parsed.urlset?.url) {
-        urls = Array.isArray(parsed.urlset.url)
-          ? parsed.urlset.url.map(u => u.loc || u)
-          : [parsed.urlset.url.loc || parsed.urlset.url];
-      } else if (parsed.sitemapindex?.sitemap) {
-        const sitemaps = Array.isArray(parsed.sitemapindex.sitemap)
-          ? parsed.sitemapindex.sitemap
-          : [parsed.sitemapindex.sitemap];
-
-        for (const sitemap of sitemaps) {
-          const subUrls = await this._fetchSitemapUrls(sitemap.loc);
-          urls.push(...subUrls);
-        }
-      }
-
-      return urls.filter(url => {
-        try {
-          new URL(url);
-          return true;
-        } catch {
-          return false;
-        }
-      });
-    } catch (error) {
-      console.error('Sitemap fetch error:', error);
-      throw error;
-    }
+    // Use the concurrent crawler for better sitemap handling
+    return await concurrentCrawler.fetchSitemapUrls(sitemapUrl);
   }
 
   _discoverLinks = async (url, includeSubdomains) => {
@@ -204,7 +178,8 @@ class FirecrawlAdapter {
 
   getCrawlStatus = async (jobId) => {
     try {
-      const status = crawlerHandler.getJobStatus(jobId);
+      // Get job status from concurrent crawler
+      const status = concurrentCrawler.getJobStatus(jobId);
 
       if (status.status === 'not_found') {
         throw new Error('Job not found');
@@ -244,7 +219,8 @@ class FirecrawlAdapter {
       'pending': 'queued',
       'processing': 'scraping',
       'completed': 'completed',
-      'failed': 'failed'
+      'failed': 'failed',
+      'cancelled': 'cancelled'
     };
     return statusMap[internalStatus] || internalStatus;
   }

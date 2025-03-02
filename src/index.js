@@ -8,7 +8,7 @@ const { extractMetadata, formatMetadata } = require('./utils/metadata');
 const webhookHandler = require('./utils/webhook-handler');
 const crawlerHandler = require('./utils/crawl_urls_sitemap.js');
 const marked = require('marked');
-
+const concurrentCrawler = require('./utils/concurrent-crawler');
 const app = express();
 app.use(express.json());
 app.use('/v1', firecrawlRoutes);
@@ -251,7 +251,7 @@ app.get('/convert', async (req, res) => {
       removeSelectors,
       aggressive_cleaning,
       remove_images,
-      aggressiveCleaning, // support camelCase too
+      aggressiveCleaning,
       removeImages
     } = req.query;
     
@@ -276,7 +276,20 @@ app.get('/convert', async (req, res) => {
     };
 
     const formattedUrl = validateAndFormatUrl(url);
-    const markdown = await convertUrlToMarkdown(formattedUrl, options);
+    
+    // Create a temporary job for this request
+    const concurrentCrawler = require('./utils/concurrent-crawler');
+    const tempJob = {
+      id: `temp_${Date.now()}`,
+      config: options,
+      processedUrls: new Set()
+    };
+    
+    // Process the URL using the concurrent crawler's processUrl method
+    const result = await concurrentCrawler.processUrl(formattedUrl, tempJob);
+    
+    // Format response as before
+    const markdown = `URL: ${formattedUrl}\n\n${result.metadata}\n\n---\n\n${result.content}`;
 
     res.setHeader('Content-Type', 'text/markdown');
     res.send(markdown);
@@ -290,6 +303,7 @@ app.get('/convert', async (req, res) => {
       });
   }
 });
+
 
 app.post('/', (req, res) => {
     res.json({ "result": "pong" });
@@ -341,7 +355,20 @@ app.post('/convert', async (req, res) => {
     };
 
     const formattedUrl = validateAndFormatUrl(url);
-    const markdown = await convertUrlToMarkdown(formattedUrl, options);
+    
+    // Create a temporary job for this request
+    const concurrentCrawler = require('./utils/concurrent-crawler');
+    const tempJob = {
+      id: `temp_${Date.now()}`,
+      config: options,
+      processedUrls: new Set()
+    };
+    
+    // Process the URL using the concurrent crawler's processUrl method
+    const result = await concurrentCrawler.processUrl(formattedUrl, tempJob);
+    
+    // Format response as before
+    const markdown = `URL: ${formattedUrl}\n\n${result.metadata}\n\n---\n\n${result.content}`;
 
     // Handle webhook if configured
     let webhookResult = null;
@@ -381,52 +408,77 @@ app.post('/convert', async (req, res) => {
 
 // Crawl sitemap endpoint
 app.post('/crawl_sitemap', async (req, res) => {
-    try {
-      const { 
-        sitemapUrl, 
-        targetSelectors, 
-        removeSelectors,
-        webhook
-      } = req.body;
-  
-      if (!sitemapUrl) {
-        return res.status(400).json({
-          error: 'sitemapUrl is required',
-          example: {
-            sitemapUrl: "https://example.com/sitemap.xml",
-            targetSelectors: [".main-content", "article"],
-            removeSelectors: [".ads", ".nav"],
-            webhook: {
-              url: "https://your-webhook.com/endpoint",
-              headers: {
-                "Authorization": "Bearer token"
-              },
-              progressUpdates: true,
-              extraFields: {
-                project: "my-crawler",
-                source: "sitemap"
-              }
+  try {
+    const { 
+      sitemapUrl, 
+      targetSelectors, 
+      removeSelectors,
+      webhook,
+      maxConcurrent, // New parameter for concurrency
+      batchSize,     // New parameter for batch processing
+      processingDelay,
+      retryCount,
+      retryDelay,
+      aggressive_cleaning,
+      remove_images
+    } = req.body;
+
+    if (!sitemapUrl) {
+      return res.status(400).json({
+        error: 'sitemapUrl is required',
+        example: {
+          sitemapUrl: "https://example.com/sitemap.xml",
+          targetSelectors: [".main-content", "article"],
+          removeSelectors: [".ads", ".nav"],
+          maxConcurrent: 5, // Add this to your example
+          batchSize: 10,     // Add this to your example
+          webhook: {
+            url: "https://your-webhook.com/endpoint",
+            headers: {
+              "Authorization": "Bearer token"
+            },
+            progressUpdates: true,
+            extraFields: {
+              project: "my-crawler",
+              source: "sitemap"
             }
           }
-        });
-      }
-  
-      const jobResult = await crawlerHandler.createJob({
-        sitemapUrl,
-        targetSelectors,
-        removeSelectors,
-        webhook
-      });
-  
-      res.json(jobResult);
-    } catch (error) {
-      console.error('Sitemap crawl error:', error);
-      res.status(500).json({
-        error: 'Crawl failed',
-        details: error.message
+        }
       });
     }
-  });
+
+    // Use the concurrent crawler instead of the old crawler handler
+    const jobResult = await concurrentCrawler.createJob({
+      sitemapUrl,
+      targetSelectors,
+      removeSelectors,
+      webhook,
+      maxConcurrent,
+      batchSize,
+      processingDelay,
+      retryCount,
+      retryDelay,
+      aggressive_cleaning,
+      remove_images
+    });
+
+    res.json({
+      ...jobResult,
+      message: `Sitemap crawl job started with ID: ${jobResult.jobId}`,
+      endpoints: {
+        status: `/job/${jobResult.jobId}`,
+        cancel: `/job/${jobResult.jobId}/cancel`
+      }
+    });
+  } catch (error) {
+    console.error('Sitemap crawl error:', error);
+    res.status(500).json({
+      error: 'Crawl failed',
+      details: error.message
+    });
+  }
+});
+
   
   // Crawl multiple URLs endpoint
   app.post('/crawl_urls', async (req, res) => {
@@ -435,7 +487,14 @@ app.post('/crawl_sitemap', async (req, res) => {
         urls, 
         targetSelectors, 
         removeSelectors,
-        webhook
+        webhook,
+        maxConcurrent, // New parameter for concurrency
+        batchSize,     // New parameter for batch processing
+        processingDelay,
+        retryCount,
+        retryDelay,
+        aggressive_cleaning,
+        remove_images
       } = req.body;
   
       if (!urls || !Array.isArray(urls) || urls.length === 0) {
@@ -448,6 +507,8 @@ app.post('/crawl_sitemap', async (req, res) => {
             ],
             targetSelectors: [".main-content", "article"],
             removeSelectors: [".ads", ".nav"],
+            maxConcurrent: 3, // Add this to your example
+            batchSize: 5,     // Add this to your example
             webhook: {
               url: "https://your-webhook.com/endpoint",
               headers: {
@@ -463,14 +524,29 @@ app.post('/crawl_sitemap', async (req, res) => {
         });
       }
   
-      const jobResult = await crawlerHandler.createJob({
+      // Use the concurrent crawler instead of the old crawler handler
+      const jobResult = await concurrentCrawler.createJob({
         urls,
         targetSelectors,
         removeSelectors,
-        webhook
+        webhook,
+        maxConcurrent,
+        batchSize,
+        processingDelay,
+        retryCount,
+        retryDelay,
+        aggressive_cleaning,
+        remove_images
       });
   
-      res.json(jobResult);
+      res.json({
+        ...jobResult,
+        message: `URL batch crawl job started with ID: ${jobResult.jobId}`,
+        endpoints: {
+          status: `/job/${jobResult.jobId}`,
+          cancel: `/job/${jobResult.jobId}/cancel`
+        }
+      });
     } catch (error) {
       console.error('URLs crawl error:', error);
       res.status(500).json({
@@ -482,9 +558,71 @@ app.post('/crawl_sitemap', async (req, res) => {
   
   // Job status endpoint
   app.get('/job/:jobId', (req, res) => {
-    const status = crawlerHandler.getJobStatus(req.params.jobId);
+    const status = concurrentCrawler.getJobStatus(req.params.jobId);
+    
+    if (status.status === 'not_found') {
+      return res.status(404).json({
+        error: 'Job not found',
+        jobId: req.params.jobId
+      });
+    }
+    
     res.json(status);
   });
+
+  app.post('/job/:jobId/cancel', (req, res) => {
+    const result = concurrentCrawler.cancelJob(req.params.jobId);
+    
+    if (!result.success) {
+      return res.status(404).json({
+        error: result.error,
+        jobId: req.params.jobId
+      });
+    }
+    
+    res.json(result);
+  });
+
+  app.get('/job/:jobId/results', async (req, res) => {
+    try {
+      const results = await concurrentCrawler.getJobResults(req.params.jobId);
+      
+      if (!results) {
+        return res.status(404).json({
+          error: 'Job results not found',
+          jobId: req.params.jobId
+        });
+      }
+      
+      // Check if client wants full results or just summary
+      const includeFull = req.query.full === 'true';
+      
+      if (!includeFull && results.results?.length > 50) {
+        // Return summary without full results for large jobs
+        const { results: fullResults, ...summary } = results;
+        return res.json({
+          ...summary,
+          resultsCount: fullResults.length,
+          note: 'Results array omitted due to size. Use ?full=true to get full results.'
+        });
+      }
+      
+      res.json(results);
+    } catch (error) {
+      console.error(`Error fetching results for job ${req.params.jobId}:`, error);
+      res.status(500).json({
+        error: 'Failed to retrieve job results',
+        details: error.message
+      });
+    }
+  });
+  
+  // Add new endpoint for system metrics:
+  app.get('/metrics', (req, res) => {
+    const metrics = concurrentCrawler.getMetrics();
+    res.json(metrics);
+  });
+
 
 // Homepage endpoint - Add this after your existing endpoints
 // Homepage endpoint
