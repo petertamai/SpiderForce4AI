@@ -68,8 +68,25 @@ function initRedis() {
     
     // Test Redis connection
     redisClient.on('connect', () => {
-      console.log('Redis connected successfully');
-    });
+        console.log('✅ Redis connected successfully and will be used for caching');
+        // Try a simple set/get test
+        redisClient.set('redis_test', 'working', 'EX', 10)
+          .then(() => redisClient.get('redis_test'))
+          .then((result) => {
+            if (result === 'working') {
+              console.log('✅ Redis cache test successful');
+              useRedis = true;
+            } else {
+              console.error('⚠️ Redis cache test failed - falling back to LRU cache');
+              useRedis = false;
+            }
+          })
+          .catch(err => {
+            console.error('⚠️ Redis operations test failed:', err);
+            console.log('⚠️ Falling back to LRU cache');
+            useRedis = false;
+          });
+      });
     
     redisClient.on('error', (err) => {
       console.error('Redis connection error:', err);

@@ -3,10 +3,6 @@ version: '3.8'
 services:
   spiderforce4ai:
     image: petertamai/spiderforce4ai:latest
-    # Or build from local Dockerfile:
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
     container_name: spiderforce4ai
     restart: unless-stopped
     ports:
@@ -14,18 +10,15 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3004
-      - USE_REDIS=internal # Can be 'internal', 'external', or 'none'
+      - USE_REDIS=internal
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      # Optional: uncomment to use external Redis
-      # - USE_REDIS=external
-      # - EXTERNAL_REDIS_URL=redis://default:password@your-redis-host:6379
     volumes:
-      - ./logs:/usr/src/app/logs
-      - ./crawl_reports:/usr/src/app/crawl_reports
+      - app_logs:/usr/src/app/logs
+      - crawl_reports:/usr/src/app/crawl_reports
     depends_on:
       redis:
-        condition: service_healthy  # Wait for Redis to be healthy
+        condition: service_healthy
     networks:
       - spiderforce_network
 
@@ -35,15 +28,17 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
-    command: ["redis-server", "--appendonly", "yes"]
+    command: >
+      sh -c "echo 'vm.overcommit_memory is set to 1 for production use' &&
+             redis-server --appendonly yes"
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]  # Check if Redis responds to ping
-      interval: 5s                        # Check every 5 seconds
-      timeout: 3s                         # Timeout after 3 seconds
-      retries: 5                          # Retry 5 times before failing
-      start_period: 10s                   # Give Redis 10s to start initially
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
     networks:
       - spiderforce_network
 
@@ -52,4 +47,6 @@ networks:
     driver: bridge
 
 volumes:
+  app_logs:
+  crawl_reports:
   redis_data:
