@@ -68,8 +68,25 @@ function initRedis() {
     
     // Test Redis connection
     redisClient.on('connect', () => {
-      console.log('Redis connected successfully');
-    });
+        console.log('✅ Redis connected successfully and will be used for caching');
+        // Try a simple set/get test
+        redisClient.set('redis_test', 'working', 'EX', 10)
+          .then(() => redisClient.get('redis_test'))
+          .then((result) => {
+            if (result === 'working') {
+              console.log('✅ Redis cache test successful');
+              useRedis = true;
+            } else {
+              console.error('⚠️ Redis cache test failed - falling back to LRU cache');
+              useRedis = false;
+            }
+          })
+          .catch(err => {
+            console.error('⚠️ Redis operations test failed:', err);
+            console.log('⚠️ Falling back to LRU cache');
+            useRedis = false;
+          });
+      });
     
     redisClient.on('error', (err) => {
       console.error('Redis connection error:', err);
@@ -263,7 +280,7 @@ class ConcurrentCrawler {
   async processJob(jobId) {
     const job = this.jobs.get(jobId);
     if (!job) return;
-
+  
     try {
       job.status = 'processing';
       console.log(`[Job ${jobId}] Starting job processing`);
@@ -275,11 +292,11 @@ class ConcurrentCrawler {
       } else if (job.config.urls) {
         urls = job.config.urls;
       }
-
+  
       if (!urls?.length) {
         throw new Error('No valid URLs found');
       }
-
+  
       job.total = urls.length;
       
       // Split URLs into batches
@@ -336,15 +353,22 @@ class ConcurrentCrawler {
           await new Promise(resolve => setTimeout(resolve, job.config.processingDelay));
         }
       }
-
-      // Finalize job
+  
+      // Finalize job - Ensure counts are consistent
       job.status = 'completed';
       job.endTime = Date.now();
       job.duration = (job.endTime - job.startTime) / 1000;
-      console.log(`[Job ${jobId}] Job completed in ${job.duration.toFixed(2)}s. Processed: ${job.processed}, Success: ${job.success}, Failed: ${job.failed}`);
+      
+      // Make sure total count matches what we actually processed
+      if (job.processed !== job.total) {
+        console.log(`[Job ${jobId}] Adjusting total count from ${job.total} to ${job.processed} to match processed URLs`);
+        job.total = job.processed;
+      }
+      
+      console.log(`[Job ${jobId}] Job completed in ${job.duration.toFixed(2)}s. Processed: ${job.processed}, Success: ${job.success}, Failed: ${job.failed}, Total: ${job.total}`);
       
       await this.saveJobState(job);
-
+  
       // Send final webhook if configured
       if (job.config.webhook) {
         await this.sendWebhook(job).catch(error => {
@@ -372,37 +396,44 @@ class ConcurrentCrawler {
     // Create a cache key based on URL and selectors
     const cacheKey = `sf4ai:${url}-${JSON.stringify(job.config.targetSelectors)}-${JSON.stringify(job.config.removeSelectors)}`;
     const bypassCache = job.config.nocache === true; 
-    // Check Redis cache first if enabled
+    
+    // Check cache first if caching is enabled
     if (!bypassCache) {
-        // Check Redis cache first if enabled
-        if (useRedis && redisClient) {
-          try {
-            const cachedResult = await redisClient.get(cacheKey);
-            if (cachedResult) {
-              // Enhanced logging for Redis cache hit
-              console.log('\x1b[36m%s\x1b[0m', `[CACHE HIT ⚡] Redis cache: ${url}`);
-              return JSON.parse(cachedResult);
-            }
-          } catch (error) {
-            console.error(`[Redis error] Failed to get cached result for ${url}:`, error.message);
+      // Check Redis cache first if enabled
+      if (useRedis && redisClient) {
+        try {
+          const cachedResult = await redisClient.get(cacheKey);
+          if (cachedResult) {
+            // Enhanced logging for Redis cache hit
+            console.log('\x1b[36m%s\x1b[0m', `[CACHE HIT ⚡] Redis cache: ${url}`);
+            const result = JSON.parse(cachedResult);
+            // Mark as processed for job counting
+            job.processedUrls.add(url);
+            return result;
           }
-        } 
-        // Fall back to LRU cache
-        else if (this.resultsCache.has(cacheKey)) {
-          // Enhanced logging for LRU cache hit
-          console.log('\x1b[36m%s\x1b[0m', `[CACHE HIT ⚡] LRU cache: ${url}`);
-          return this.resultsCache.get(cacheKey);
+        } catch (error) {
+          console.error(`[Redis error] Failed to get cached result for ${url}:`, error.message);
         }
-      } else {
-        console.log('\x1b[33m%s\x1b[0m', `[CACHE BYPASS 🔄] nocache=true: ${url}`);
+      } 
+      // Fall back to LRU cache
+      else if (this.resultsCache.has(cacheKey)) {
+        // Enhanced logging for LRU cache hit
+        console.log('\x1b[36m%s\x1b[0m', `[CACHE HIT ⚡] LRU cache: ${url}`);
+        const result = this.resultsCache.get(cacheKey);
+        // Mark as processed for job counting
+        job.processedUrls.add(url);
+        return result;
       }
+    } else {
+      console.log('\x1b[33m%s\x1b[0m', `[CACHE BYPASS 🔄] nocache=true: ${url}`);
+    }
       
-      // Log cache miss or bypass
-      if (bypassCache) {
-        console.log('\x1b[33m%s\x1b[0m', `[FORCED FETCH 🔍] Processing URL with cache bypass: ${url}`);
-      } else {
-        console.log('\x1b[33m%s\x1b[0m', `[CACHE MISS 🔍] Processing URL: ${url}`);
-      }
+    // Log cache miss or bypass
+    if (bypassCache) {
+      console.log('\x1b[33m%s\x1b[0m', `[FORCED FETCH 🔍] Processing URL with cache bypass: ${url}`);
+    } else {
+      console.log('\x1b[33m%s\x1b[0m', `[CACHE MISS 🔍] Processing URL: ${url}`);
+    }
     
     try {
       console.log(`Processing URL: ${url}`);
@@ -410,7 +441,7 @@ class ConcurrentCrawler {
       
       page = await browserManager.createPage();
       await browserManager.navigateToUrl(page, url);
-
+  
       // Extract metadata
       const metadata = await extractMetadata(page);
       const formattedMetadata = formatMetadata(metadata);
@@ -456,6 +487,7 @@ class ConcurrentCrawler {
         this.resultsCache.set(cacheKey, result);
         console.log('\x1b[32m%s\x1b[0m', `[CACHE STORE 💾] LRU: ${url}`);
       }
+      
       // Update metrics
       this.metrics.totalProcessed++;
       this.metrics.successCount++;
@@ -540,6 +572,12 @@ class ConcurrentCrawler {
    */
   async saveJobState(job) {
     try {
+      // Ensure consistent counts before saving
+      if (job.status === 'completed' && job.total !== job.processed) {
+        console.log(`[Job ${job.id}] Saving job state: Fixing inconsistent counts. Total: ${job.total}, Processed: ${job.processed}`);
+        job.total = job.processed;
+      }
+      
       const state = {
         id: job.id,
         status: job.status,
@@ -564,13 +602,12 @@ class ConcurrentCrawler {
         results: job.results,
         error: job.error
       };
-
+  
       await fs.writeFile(job.reportFile, JSON.stringify(state, null, 2));
     } catch (error) {
       console.error(`Error saving job state for ${job.id}:`, error);
     }
   }
-
   /**
    * Send progress webhook
    * @param {Object} job Job object
@@ -721,7 +758,24 @@ class ConcurrentCrawler {
         return { status: 'not_found' };
       }
     }
-
+  
+    // Ensure job counts are consistent - especially for completed jobs
+    let summary = {
+      total: job.total,
+      processed: job.processed,
+      successful: job.success,
+      failed: job.failed,
+      currentBatch: job.currentBatch,
+      totalBatches: job.batches.length,
+      processingTime: job.endTime ? (job.endTime - job.startTime) / 1000 : null
+    };
+  
+    // For completed jobs, ensure the counts are consistent
+    if (job.status === 'completed' && summary.total !== summary.processed) {
+      console.log(`[Job ${jobId}] Status check: Fixing inconsistent counts. Total: ${summary.total}, Processed: ${summary.processed}`);
+      summary.total = summary.processed;
+    }
+  
     return {
       id: job.id,
       status: job.status,
@@ -732,15 +786,7 @@ class ConcurrentCrawler {
         maxConcurrent: job.config.maxConcurrent,
         batchSize: job.config.batchSize
       },
-      summary: {
-        total: job.total,
-        processed: job.processed,
-        successful: job.success,
-        failed: job.failed,
-        currentBatch: job.currentBatch,
-        totalBatches: job.batches.length,
-        processingTime: job.endTime ? (job.endTime - job.startTime) / 1000 : null
-      },
+      summary: summary,
       results: job.processed <= 50 ? job.results : null, // Only include results for small jobs
       hasResults: job.results.length > 0,
       error: job.error,
