@@ -20,23 +20,76 @@ const MAX_RETRIES = 2;
  * Main conversion function
  */
 
-// In index.js, modify the convertUrlToMarkdown function to pass options
-
-// In index.js - modify the convertUrlToMarkdown function
-
+/**
+ * Initialize services in the correct order
+ */
+async function initializeServices() {
+  try {
+    console.log('Initializing services...');
+    
+    // Initialize the browser manager first
+    console.log('Initializing browser manager...');
+    await browserManager.getBrowser();
+    
+    // Initialize Redis and caching
+    console.log('Initializing Redis and caching...');
+    if (typeof concurrentCrawler.initializeRedis === 'function') {
+      await concurrentCrawler.initializeRedis();
+      console.log('Redis initialization completed');
+    } else {
+      console.warn('Redis initialization function not found, continuing without Redis');
+    }
+    
+    console.log('All services initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('Error initializing services:', error);
+    return false;
+  }
+}
 /**
  * Main conversion function
  */
 /**
- * Enhanced convertUrlToMarkdown function with multi-stage fallback strategy
- * Prioritizes SPEED while ensuring content is always extracted
- */
-/**
- * Enhanced convertUrlToMarkdown function with multi-stage fallback strategy
- * Prioritizes SPEED while ensuring content is always extracted
+ * Enhanced convertUrlToMarkdown function with caching and multi-stage fallback strategy
  */
 async function convertUrlToMarkdown(url, options = {}, retryCount = 0, fallbackStage = 0) {
   let page = null;
+
+
+  if (process.env.DISABLE_ALL_CACHING === 'true') {
+    options.nocache = true; // Force cache bypass if all caching is disabled
+  }
+  // Check cache first if not bypassing cache
+  const bypassCache = options.nocache === true;
+  if (!bypassCache) {
+    const cacheKey = `sf4ai:${url}-${JSON.stringify(options.targetSelectors || [])}-${JSON.stringify(options.removeSelectors || [])}`;
+    
+    try {
+      // Check Redis cache first if enabled
+      if (concurrentCrawler.isRedisEnabled()) {
+        const redisClient = concurrentCrawler.getRedisClient();
+        const cachedData = await redisClient.get(cacheKey);
+        
+        if (cachedData) {
+          const cachedResult = JSON.parse(cachedData);
+          console.log('\x1b[36m%s\x1b[0m', `[CACHE HIT ⚡] Redis cache used in convertUrlToMarkdown: ${url}`);
+          return cachedResult.content;
+        }
+      } 
+      // Fallback to LRU cache
+      else if (concurrentCrawler.getLRUCache().has(cacheKey)) {
+        const cachedResult = concurrentCrawler.getLRUCache().get(cacheKey);
+        console.log('\x1b[36m%s\x1b[0m', `[CACHE HIT ⚡] LRU cache used in convertUrlToMarkdown: ${url}`);
+        return cachedResult.content;
+      }
+    } catch (cacheError) {
+      console.error(`[Cache] Error checking cache for ${url}:`, cacheError);
+      // Continue with processing if cache check fails
+    }
+  } else {
+    console.log('\x1b[33m%s\x1b[0m', `[CACHE BYPASS 🔄] nocache=true: ${url}`);
+  }
 
   try {
     // Import required modules
@@ -58,7 +111,8 @@ async function convertUrlToMarkdown(url, options = {}, retryCount = 0, fallbackS
       dynamic_content_timeout: options.dynamic_content_timeout || options.dynamicContentTimeout || 
                               parseInt(process.env.DYNAMIC_CONTENT_TIMEOUT, 10) || 5000,
       scroll_wait_time: options.scroll_wait_time || options.scrollWaitTime || 
-                       parseInt(process.env.SCROLL_WAIT_TIME, 10) || 200
+                       parseInt(process.env.SCROLL_WAIT_TIME, 10) || 200,
+      nocache: options.nocache === true
     };
 
     // Log conversion options and fallback stage if applicable
@@ -173,7 +227,38 @@ async function convertUrlToMarkdown(url, options = {}, retryCount = 0, fallbackS
     console.log(`[${url}] Final markdown length: ${contentMarkdown.length} characters`);
     
     // Combine all parts
-    return `URL: ${url}\n\n${formattedMetadata}\n\n---\n\n${contentMarkdown}`;
+    const result = `URL: ${url}\n\n${formattedMetadata}\n\n---\n\n${contentMarkdown}`;
+    
+    // Cache the result if not bypassing cache
+    if (!bypassCache) {
+      const cacheKey = `sf4ai:${url}-${JSON.stringify(options.targetSelectors || [])}-${JSON.stringify(options.removeSelectors || [])}`;
+      
+      try {
+        const cacheData = {
+          url,
+          success: true,
+          content: result,
+          timestamp: new Date().toISOString()
+        };
+        
+        // Store in Redis if enabled
+        if (concurrentCrawler.isRedisEnabled()) {
+          const redisClient = concurrentCrawler.getRedisClient();
+          const REDIS_CACHE_TTL = parseInt(process.env.REDIS_CACHE_TTL || '3600', 10);
+          await redisClient.set(cacheKey, JSON.stringify(cacheData), 'EX', REDIS_CACHE_TTL);
+          console.log(`[${url}] Result cached in Redis successfully`);
+        } 
+        // Otherwise use LRU cache
+        else {
+          concurrentCrawler.getLRUCache().set(cacheKey, cacheData);
+          console.log(`[${url}] Result cached in LRU cache successfully`);
+        }
+      } catch (cacheError) {
+        console.error(`[${url}] Error caching result:`, cacheError);
+      }
+    }
+    
+    return result;
 
   } catch (error) {
     console.error(`[${url}] Error during conversion:`, error);
@@ -186,6 +271,34 @@ async function convertUrlToMarkdown(url, options = {}, retryCount = 0, fallbackS
     )) {
       console.log(`[${url}] Retrying... (${retryCount + 1}/${MAX_RETRIES})`);
       return convertUrlToMarkdown(url, options, retryCount + 1, fallbackStage);
+    }
+
+    // If caching is enabled, check one last time for a cached version
+    if (!bypassCache) {
+      try {
+        const cacheKey = `sf4ai:${url}-${JSON.stringify(options.targetSelectors || [])}-${JSON.stringify(options.removeSelectors || [])}`;
+        
+        // Check Redis first
+        if (concurrentCrawler.isRedisEnabled()) {
+          const redisClient = concurrentCrawler.getRedisClient();
+          const cachedData = await redisClient.get(cacheKey);
+          
+          if (cachedData) {
+            const cachedResult = JSON.parse(cachedData);
+            console.log(`[${url}] ⚠️ Error encountered but found Redis cached version, using that as fallback`);
+            return cachedResult.content;
+          }
+        } 
+        // Then check LRU cache
+        else if (concurrentCrawler.getLRUCache().has(cacheKey)) {
+          const cachedResult = concurrentCrawler.getLRUCache().get(cacheKey);
+          console.log(`[${url}] ⚠️ Error encountered but found LRU cached version, using that as fallback`);
+          return cachedResult.content;
+        }
+      } catch (e) {
+        // Ignore errors in emergency cache lookup
+        console.error(`[${url}] Error during emergency cache lookup:`, e);
+      }
     }
 
     throw error;
@@ -247,6 +360,8 @@ app.get('/health', async (req, res) => {
 
 // GET endpoint for basic conversion with optional selectors
 app.get('/convert', async (req, res) => {
+
+
   try {
     const { 
       url, 
@@ -273,14 +388,57 @@ app.get('/convert', async (req, res) => {
     const options = {
       targetSelectors: parseSelectors(targetSelectors),
       removeSelectors: parseSelectors(removeSelectors),
-      aggressive_cleaning,
-      remove_images,
-      aggressiveCleaning,
-      removeImages,
+      aggressive_cleaning: aggressive_cleaning !== undefined ? aggressive_cleaning === 'true' : undefined,
+      remove_images: remove_images !== undefined ? remove_images === 'true' : undefined,
+      aggressiveCleaning: aggressiveCleaning !== undefined ? aggressiveCleaning === 'true' : undefined,
+      removeImages: removeImages !== undefined ? removeImages === 'true' : undefined,
       nocache: nocache === 'true' // Convert string to boolean
     };
 
+
+    if (process.env.DISABLE_ALL_CACHING === 'true') {
+      console.log(`[CACHE DISABLED] All caching disabled by environment config`);
+      options.nocache = true; // Force nocache when DISABLE_ALL_CACHING is true
+    }
+  
+
     const formattedUrl = validateAndFormatUrl(url);
+    
+    // Check cache before processing using the concurrent-crawler's methods
+    const bypassCache = options.nocache === true;
+    if (!bypassCache) {
+      // Create cache key the same way concurrent-crawler does
+      const cacheKey = `sf4ai:${formattedUrl}-${JSON.stringify(options.targetSelectors || [])}-${JSON.stringify(options.removeSelectors || [])}`;
+      
+      // Try to get from cache
+      let cachedResult = null;
+      
+      // Check if Redis is enabled
+      if (concurrentCrawler.isRedisEnabled()) {
+        try {
+          const cachedData = await concurrentCrawler.getRedisClient().get(cacheKey);
+          if (cachedData) {
+            cachedResult = JSON.parse(cachedData);
+            console.log('\x1b[36m%s\x1b[0m', `[CACHE HIT ⚡] Redis cache: ${formattedUrl}`);
+          }
+        } catch (cacheError) {
+          console.error(`Redis cache error for ${formattedUrl}:`, cacheError);
+        }
+      } else if (concurrentCrawler.getLRUCache().has(cacheKey)) {
+        // Try LRU cache if Redis is not available
+        cachedResult = concurrentCrawler.getLRUCache().get(cacheKey);
+        console.log('\x1b[36m%s\x1b[0m', `[CACHE HIT ⚡] LRU cache: ${formattedUrl}`);
+      }
+      
+      // Return cached result if found
+      if (cachedResult && cachedResult.content) {
+        res.setHeader('Content-Type', 'text/markdown');
+        res.send(cachedResult.content);
+        return;
+      }
+    } else {
+      console.log('\x1b[33m%s\x1b[0m', `[CACHE BYPASS 🔄] nocache=true: ${formattedUrl}`);
+    }
     
     // Create a temporary job for this request
     const tempJob = {
@@ -289,8 +447,34 @@ app.get('/convert', async (req, res) => {
       processedUrls: new Set()
     };
     
-    // Process the URL directly using the convertUrlToMarkdown function
+    // Process the URL 
     const result = await convertUrlToMarkdown(formattedUrl, options);
+    
+    // Cache the result for future requests
+    if (!bypassCache) {
+      const cacheData = {
+        url: formattedUrl,
+        success: true,
+        content: result,
+        timestamp: new Date().toISOString()
+      };
+      
+      const cacheKey = `sf4ai:${formattedUrl}-${JSON.stringify(options.targetSelectors || [])}-${JSON.stringify(options.removeSelectors || [])}`;
+      
+      // Store in cache
+      try {
+        if (concurrentCrawler.isRedisEnabled()) {
+          const REDIS_CACHE_TTL = parseInt(process.env.REDIS_CACHE_TTL || '3600', 10);
+          await concurrentCrawler.getRedisClient().set(cacheKey, JSON.stringify(cacheData), 'EX', REDIS_CACHE_TTL);
+          console.log(`[Cache] Stored in Redis: ${formattedUrl}`);
+        } else {
+          concurrentCrawler.getLRUCache().set(cacheKey, cacheData);
+          console.log(`[Cache] Stored in LRU cache: ${formattedUrl}`);
+        }
+      } catch (cacheError) {
+        console.error(`[Cache] Error storing result for ${formattedUrl}:`, cacheError);
+      }
+    }
     
     // Format response
     res.setHeader('Content-Type', 'text/markdown');
@@ -316,6 +500,8 @@ app.post('/', (req, res) => {
  * POST endpoint for advanced options
  */
 app.post('/convert', async (req, res) => {
+
+
   try {
     const { 
       url, 
@@ -357,23 +543,89 @@ app.post('/convert', async (req, res) => {
       remove_images,
       aggressiveCleaning,
       removeImages,
-      nocache: nocache === true // Convert to boolean if needed
+      nocache: nocache === true // Ensure it's boolean
     };
+
+    if (process.env.DISABLE_ALL_CACHING === 'true') {
+      console.log(`[CACHE DISABLED] All caching disabled by environment config`);
+      options.nocache = true; // Force nocache when DISABLE_ALL_CACHING is true
+    }
 
     const formattedUrl = validateAndFormatUrl(url);
     
-    // Use direct conversion instead of concurrent crawler
+    // Check cache before processing
+    const bypassCache = options.nocache === true;
+    if (!bypassCache) {
+      const cacheKey = concurrentCrawler.createCacheKey(
+        formattedUrl,
+        options.targetSelectors,
+        options.removeSelectors
+      );
+      
+      const cachedResult = await concurrentCrawler.getCacheByKey(cacheKey);
+      if (cachedResult && cachedResult.content) {
+        console.log('\x1b[36m%s\x1b[0m', `[CACHE HIT ⚡] Cache used for: ${formattedUrl}`);
+        
+        // Handle webhook if configured with cached result
+        if (custom_webhook) {
+          await webhookHandler.sendWebhook(custom_webhook, {
+            url: formattedUrl,
+            markdown: cachedResult.content,
+            metadata: req.body,
+            options,
+            fromCache: true
+          });
+        }
+        
+        // Send response
+        if (req.headers.accept?.includes('application/json')) {
+          res.json({
+            markdown: cachedResult.content,
+            webhook_result: custom_webhook ? { success: true, fromCache: true } : null,
+            fromCache: true,
+            config: {
+              aggressive_cleaning: options.aggressive_cleaning,
+              remove_images: options.remove_images,
+              nocache: options.nocache
+            }
+          });
+        } else {
+          res.setHeader('Content-Type', 'text/markdown');
+          res.send(cachedResult.content);
+        }
+        return;
+      }
+    } else {
+      console.log('\x1b[33m%s\x1b[0m', `[CACHE BYPASS 🔄] nocache=true: ${formattedUrl}`);
+    }
+    
+    // Use direct conversion
     const result = await convertUrlToMarkdown(formattedUrl, options);
 
-    // Format response as markdown
-    const markdown = result; // Already formatted by convertUrlToMarkdown
+    // Cache result if caching is enabled
+    if (!bypassCache) {
+      const cacheData = {
+        url: formattedUrl,
+        success: true,
+        content: result,
+        timestamp: new Date().toISOString()
+      };
+      
+      const cacheKey = concurrentCrawler.createCacheKey(
+        formattedUrl,
+        options.targetSelectors,
+        options.removeSelectors
+      );
+      
+      await concurrentCrawler.setCacheByKey(cacheKey, cacheData);
+    }
 
     // Handle webhook if configured
     let webhookResult = null;
     if (custom_webhook) {
       webhookResult = await webhookHandler.sendWebhook(custom_webhook, {
         url: formattedUrl,
-        markdown,
+        markdown: result,
         metadata: req.body,
         options
       });
@@ -382,7 +634,7 @@ app.post('/convert', async (req, res) => {
     // Send response
     if (req.headers.accept?.includes('application/json')) {
       res.json({
-        markdown,
+        markdown: result,
         webhook_result: webhookResult,
         config: {
           aggressive_cleaning: options.aggressive_cleaning,
@@ -392,7 +644,7 @@ app.post('/convert', async (req, res) => {
       });
     } else {
       res.setHeader('Content-Type', 'text/markdown');
-      res.send(markdown);
+      res.send(result);
     }
 
   } catch (error) {
@@ -709,6 +961,9 @@ app.use((err, req, res, next) => {
  */
 async function startServer() {
   try {
+
+    await initializeServices();
+
     // Initialize browser at startup
     await browserManager.getBrowser();
     

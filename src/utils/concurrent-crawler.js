@@ -17,92 +17,221 @@ dotenv.config();
 let Redis = null;
 let redisClient = null;
 let useRedis = false;
+let redisInitialized = false;
 
 const REDIS_CACHE_TTL = parseInt(process.env.REDIS_CACHE_TTL || '3600', 10); // Default: 1 hour
 const LRU_CACHE_TTL = parseInt(process.env.LRU_CACHE_TTL || '3600000', 10); // Default: 1 hour
 
 
+console.log("Environment variables debug:");
+console.log(`USE_REDIS=${process.env.USE_REDIS}`);
+console.log(`REDIS_HOST=${process.env.REDIS_HOST}`);
+console.log(`EXTERNAL_REDIS_URL=${process.env.EXTERNAL_REDIS_URL}`);
+console.log(`DEFAULT_USE_CACHE=${process.env.DEFAULT_USE_CACHE}`);
+
+
 // Initialize Redis based on configuration
-function initRedis() {
+/**
+ * Initialize Redis connection with detailed testing and logging
+ * @returns {Promise<Object>} Redis status
+ */
+async function initRedis() {
+  // Return cached result if already initialized
+  if (redisInitialized) {
+    console.log(`Redis already initialized: useRedis=${useRedis}, client exists=${redisClient !== null}`);
+    return { useRedis, redisClient };
+  }
+  
   try {
     const redisMode = process.env.USE_REDIS || 'none';
+    console.log(`Redis mode configured as: "${redisMode}"`);
     
-    if (redisMode === 'none') {
-      console.log('Redis disabled by configuration');
+    // Handle Redis disabled mode
+    if (redisMode === 'none' || redisMode.toLowerCase() === 'none') {
+      console.log('Redis explicitly disabled by configuration (USE_REDIS=none)');
       useRedis = false;
-      return;
+      redisClient = null;
+      
+      // Set DISABLE_ALL_CACHING environment variable
+      if (process.env.DISABLE_ALL_CACHING !== 'false') {
+        process.env.DISABLE_ALL_CACHING = 'true';
+        console.log('All caching disabled when Redis is disabled (unless DISABLE_ALL_CACHING=false)');
+      } else {
+        console.log('Using LRU cache as Redis is disabled but DISABLE_ALL_CACHING=false');
+      }
+      
+      redisInitialized = true;
+      return { useRedis, redisClient };
     }
     
-    // Dynamically import ioredis only if needed
+    // Dynamically import Redis
     try {
+      console.log('Loading Redis module...');
       Redis = require('ioredis');
-      useRedis = true;
+      console.log('Redis module loaded successfully');
     } catch (error) {
       console.error('Failed to load ioredis module:', error.message);
       console.log('Make sure to install ioredis with: npm install --save ioredis');
       console.log('Falling back to LRU cache');
       useRedis = false;
-      return;
+      redisClient = null;
+      redisInitialized = true;
+      return { useRedis, redisClient };
     }
     
-    if (redisMode === 'internal') {
-      console.log('Using internal Redis connection');
-      redisClient = new Redis({
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379', 10),
-        password: process.env.REDIS_PASSWORD || '',
-        db: parseInt(process.env.REDIS_DB || '0', 10),
-        maxRetriesPerRequest: 3
-      });
-    } else if (redisMode === 'external') {
-      const externalUrl = process.env.EXTERNAL_REDIS_URL;
-      if (!externalUrl) {
-        console.error('External Redis URL not provided, falling back to LRU cache');
+    // Configure Redis based on mode
+    try {
+      if (redisMode === 'internal') {
+        const host = process.env.REDIS_HOST || 'localhost';
+        const port = parseInt(process.env.REDIS_PORT || '6379', 10);
+        const password = process.env.REDIS_PASSWORD || '';
+        const db = parseInt(process.env.REDIS_DB || '0', 10);
+        
+        console.log(`Using internal Redis connection: ${host}:${port} (DB: ${db})`);
+        
+        redisClient = new Redis({
+          host,
+          port,
+          password,
+          db,
+          maxRetriesPerRequest: 3,
+          retryStrategy: (times) => {
+            if (times > 3) {
+              console.error(`Redis connection failed after ${times} attempts, falling back to LRU cache`);
+              useRedis = false;
+              return null; // Stop retrying
+            }
+            return Math.min(times * 100, 3000); // Exponential backoff
+          }
+        });
+      } else if (redisMode === 'external') {
+        const externalUrl = process.env.EXTERNAL_REDIS_URL;
+        if (!externalUrl) {
+          console.error('External Redis URL not provided (EXTERNAL_REDIS_URL is empty), falling back to LRU cache');
+          useRedis = false;
+          redisClient = null;
+          redisInitialized = true;
+          return { useRedis, redisClient };
+        }
+        
+        console.log(`Using external Redis connection: ${externalUrl.replace(/\/\/.*:(.*)@/, '//***:***@')}`);
+        
+        redisClient = new Redis(externalUrl, {
+          maxRetriesPerRequest: 3,
+          connectionName: 'spiderforce4ai',
+          connectTimeout: 10000, // 10 seconds
+          retryStrategy: (times) => {
+            if (times > 3) {
+              console.error(`Redis connection failed after ${times} attempts, falling back to LRU cache`);
+              useRedis = false;
+              return null; // Stop retrying
+            }
+            return Math.min(times * 100, 3000); // Exponential backoff
+          }
+        });
+      } else {
+        console.error(`Unknown Redis mode: "${redisMode}", falling back to LRU cache`);
         useRedis = false;
-        return;
+        redisClient = null;
+        redisInitialized = true;
+        return { useRedis, redisClient };
       }
       
-      console.log(`Using external Redis connection: ${externalUrl.replace(/\/\/.*:(.*)@/, '//***:***@')}`);
-      redisClient = new Redis(externalUrl);
+      // Make sure Redis client is defined
+      if (!redisClient) {
+        throw new Error('Redis client initialization failed');
+      }
+      
+      // Wait for connection to be established with timeout
+      let connectionTimeout;
+      const connectionResult = await Promise.race([
+        // Connection test promise
+        new Promise((resolve, reject) => {
+          // Connection event
+          redisClient.once('connect', () => {
+            console.log('✅ Redis connected successfully, now testing operations...');
+            clearTimeout(connectionTimeout);
+            
+            // Test basic Redis operations
+            redisClient.set('redis_test', 'working', 'EX', 10)
+              .then(() => redisClient.get('redis_test'))
+              .then((result) => {
+                if (result === 'working') {
+                  console.log('✅ Redis cache test successful! Redis is fully operational.');
+                  useRedis = true;
+                  resolve(true);
+                } else {
+                  console.error(`⚠️ Redis cache test failed - unexpected value: ${result}`);
+                  useRedis = false;
+                  reject(new Error('Redis operations test failed - unexpected value'));
+                }
+              })
+              .catch(err => {
+                console.error('⚠️ Redis operations test failed:', err);
+                useRedis = false;
+                reject(err);
+              });
+          });
+          
+          // Error event
+          redisClient.once('error', (err) => {
+            clearTimeout(connectionTimeout);
+            console.error('Redis connection error:', err);
+            useRedis = false;
+            reject(err);
+          });
+        }),
+        
+        // Timeout promise
+        new Promise((_, reject) => {
+          connectionTimeout = setTimeout(() => {
+            reject(new Error('Redis connection timeout after 10 seconds'));
+          }, 10000);
+        })
+      ]).catch(error => {
+        console.error('Redis connection failed:', error.message);
+        useRedis = false;
+        
+        // Try to clean up Redis client
+        if (redisClient) {
+          try {
+            redisClient.disconnect();
+          } catch (e) {
+            console.error('Error closing Redis connection:', e);
+          }
+          redisClient = null;
+        }
+        
+        return false;
+      });
+      
+      // Check connection result
+      if (connectionResult !== true) {
+        console.log('Falling back to LRU cache due to Redis connection failure');
+        useRedis = false;
+        redisClient = null;
+      } else {
+        console.log(`Redis is ready and will be used for caching. (useRedis=${useRedis})`);
+      }
+      
+    } catch (error) {
+      console.error('Redis setup error:', error);
+      useRedis = false;
+      redisClient = null;
+      console.log('Falling back to LRU cache');
     }
     
-    // Test Redis connection
-    redisClient.on('connect', () => {
-        console.log('✅ Redis connected successfully and will be used for caching');
-        // Try a simple set/get test
-        redisClient.set('redis_test', 'working', 'EX', 10)
-          .then(() => redisClient.get('redis_test'))
-          .then((result) => {
-            if (result === 'working') {
-              console.log('✅ Redis cache test successful');
-              useRedis = true;
-            } else {
-              console.error('⚠️ Redis cache test failed - falling back to LRU cache');
-              useRedis = false;
-            }
-          })
-          .catch(err => {
-            console.error('⚠️ Redis operations test failed:', err);
-            console.log('⚠️ Falling back to LRU cache');
-            useRedis = false;
-          });
-      });
-    
-    redisClient.on('error', (err) => {
-      console.error('Redis connection error:', err);
-      console.log('Falling back to LRU cache');
-      useRedis = false;
-    });
   } catch (error) {
     console.error('Redis initialization error:', error);
-    console.log('Falling back to LRU cache');
     useRedis = false;
+    redisClient = null;
+    console.log('Falling back to LRU cache');
   }
+  
+  redisInitialized = true;
+  console.log(`Redis initialization complete: useRedis=${useRedis}, client exists=${redisClient !== null}`);
+  return { useRedis, redisClient };
 }
-
-// Initialize Redis on module load
-initRedis();
-
 class ConcurrentCrawler {
   constructor() {
     this.jobs = new Map();
@@ -118,7 +247,7 @@ class ConcurrentCrawler {
         max: 1000,
         ttl: LRU_CACHE_TTL, // Use the environment variable
         updateAgeOnGet: false
-      });
+    });
     
     // Performance metrics
     this.metrics = {
@@ -128,6 +257,104 @@ class ConcurrentCrawler {
       totalTime: 0,
       avgProcessingTime: 0
     };
+  }
+
+  // Method to expose the initRedis function
+  async initializeRedis() {
+    return await initRedis();
+  }
+
+  /**
+   * Check if Redis is enabled and connected
+   * @returns {boolean} - Whether Redis is available
+   */
+  isRedisEnabled() {
+    const redisMode = process.env.USE_REDIS || 'none';
+    if (redisMode === 'none' || redisMode.toLowerCase() === 'none') {
+      return false; // Explicitly return false if disabled by config
+    }
+    return useRedis === true && redisClient !== null;
+  }
+
+  /**
+   * Get Redis client for direct usage
+   * @returns {Object|null} - Redis client or null if not available
+   */
+  getRedisClient() {
+    return this.isRedisEnabled() ? redisClient : null;
+  }
+
+  /**
+   * Get LRU cache for direct usage when Redis is unavailable
+   * @returns {Object} - LRU cache instance
+   */
+  getLRUCache() {
+    return this.resultsCache;
+  }
+
+  /**
+   * Get cache (from Redis or LRU) by key
+   * @param {string} key - Cache key
+   * @returns {Promise<Object|null>} - Cached data or null
+   */
+  async getCacheByKey(key) {
+    // Check if all caching is disabled
+    if (process.env.DISABLE_ALL_CACHING === 'true') {
+      console.log(`[CACHE DISABLED] Skipping cache lookup for key: ${key}`);
+      return null;
+    }
+  
+    try {
+      if (this.isRedisEnabled()) {
+        const data = await redisClient.get(key);
+        return data ? JSON.parse(data) : null;
+      } else if (this.resultsCache.has(key)) {
+        return this.resultsCache.get(key);
+      }
+      return null;
+    } catch (error) {
+      console.error(`[Cache] Error getting cache for key ${key}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Set cache (in Redis or LRU) by key
+   * @param {string} key - Cache key
+   * @param {Object} data - Data to cache
+   * @param {boolean} bypassCache - Whether to bypass caching
+   * @returns {Promise<boolean>} - Whether cache was set successfully
+   */
+  async setCacheByKey(key, data, bypassCache = false) {
+    // Check if all caching is disabled
+    if (process.env.DISABLE_ALL_CACHING === 'true' || bypassCache) {
+      console.log(`[CACHE DISABLED] Skipping cache storage for key: ${key}`);
+      return false;
+    }
+    
+    try {
+      if (this.isRedisEnabled()) {
+        await redisClient.set(key, JSON.stringify(data), 'EX', REDIS_CACHE_TTL);
+        return true;
+      } else {
+        this.resultsCache.set(key, data);
+        return true;
+      }
+    } catch (error) {
+      console.error(`[Cache] Error setting cache for key ${key}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Create standard cache key format
+   * @param {string} url - URL to process
+   * @param {Array} targetSelectors - Target selectors
+   * @param {Array} removeSelectors - Remove selectors
+   * @returns {string} - Formatted cache key
+   */
+  createCacheKey(url, targetSelectors = [], removeSelectors = []) {
+    return `sf4ai:${url}-${JSON.stringify(targetSelectors)}-${JSON.stringify(removeSelectors)}`;
   }
 
   async ensureReportDirectory() {
@@ -436,6 +663,7 @@ class ConcurrentCrawler {
       console.error(`[Job ${jobId}] Job failed:`, error);
     }
   }
+  
   /**
    * Process a single URL
    * @param {string} url URL to process
@@ -450,47 +678,33 @@ class ConcurrentCrawler {
     job?.processedUrls?.add(url);
     
     // Create a cache key based on URL and selectors
-    const cacheKey = `sf4ai:${url}-${JSON.stringify(job?.config?.targetSelectors || [])}-${JSON.stringify(job?.config?.removeSelectors || [])}`;
+    const cacheKey = this.createCacheKey(
+      url,
+      job?.config?.targetSelectors || [],
+      job?.config?.removeSelectors || []
+    );
+    
     const bypassCache = job?.config?.nocache === true; 
     
     // Check cache first if caching is enabled
     if (!bypassCache) {
-      // Check Redis cache first if enabled
-      if (useRedis && redisClient) {
-        try {
-          const cachedResult = await redisClient.get(cacheKey);
-          if (cachedResult) {
-            // Enhanced logging for Redis cache hit
-            console.log('\x1b[36m%s\x1b[0m', `[CACHE HIT ⚡] Redis cache: ${url}`);
-            const result = JSON.parse(cachedResult);
-            
-            // If it was successful, add to successful URLs set
-            if (result.success && job?.successfulUrls) {
-              job.successfulUrls.add(url);
-            } else if (job?.failedUrls) {
-              job.failedUrls.add(url);
-            }
-            
-            return result;
+      try {
+        const cachedResult = await this.getCacheByKey(cacheKey);
+        if (cachedResult) {
+          // Enhanced logging for cache hit
+          console.log('\x1b[36m%s\x1b[0m', `[CACHE HIT ⚡] Cache used for: ${url}`);
+          
+          // If it was successful, add to successful URLs set
+          if (cachedResult.success && job?.successfulUrls) {
+            job.successfulUrls.add(url);
+          } else if (job?.failedUrls) {
+            job.failedUrls.add(url);
           }
-        } catch (error) {
-          console.error(`[Redis error] Failed to get cached result for ${url}:`, error.message);
+          
+          return cachedResult;
         }
-      } 
-      // Fall back to LRU cache
-      else if (this.resultsCache.has(cacheKey)) {
-        // Enhanced logging for LRU cache hit
-        console.log('\x1b[36m%s\x1b[0m', `[CACHE HIT ⚡] LRU cache: ${url}`);
-        const result = this.resultsCache.get(cacheKey);
-        
-        // If it was successful, add to successful URLs set
-        if (result.success && job?.successfulUrls) {
-          job.successfulUrls.add(url);
-        } else if (job?.failedUrls) {
-          job.failedUrls.add(url);
-        }
-        
-        return result;
+      } catch (error) {
+        console.error(`[Cache error] Failed to get cached result for ${url}:`, error.message);
       }
     } else {
       console.log('\x1b[33m%s\x1b[0m', `[CACHE BYPASS 🔄] nocache=true: ${url}`);
@@ -540,15 +754,7 @@ class ConcurrentCrawler {
       
       // Store in cache if applicable
       if (!bypassCache) {
-        try {
-          if (useRedis && redisClient) {
-            await redisClient.set(cacheKey, JSON.stringify(result), 'EX', REDIS_CACHE_TTL);
-          } else {
-            this.resultsCache.set(cacheKey, result);
-          }
-        } catch (error) {
-          console.error(`[Cache error] Failed to cache result for ${url}:`, error.message);
-        }
+        await this.setCacheByKey(cacheKey, result);
       }
       
       // Update metrics
@@ -691,6 +897,7 @@ class ConcurrentCrawler {
       console.error(`Error saving job state for ${job.id}:`, error);
     }
   }
+  
   /**
    * Send progress webhook
    * @param {Object} job Job object
