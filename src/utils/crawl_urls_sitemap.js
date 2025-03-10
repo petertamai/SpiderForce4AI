@@ -4,8 +4,8 @@ const fs = require('fs').promises;
 const path = require('path');
 const { XMLParser } = require('fast-xml-parser');
 const browserManager = require('./browser-manager');
-const { cleanContent } = require('./cleaner.js');
-const { convertToMarkdown } = require('./converter.js');
+const { cleanContent } = require('./cleaner.js_old');
+const { convertToMarkdown } = require('./converter.js_old');
 const { extractMetadata, formatMetadata } = require('./metadata');
 
 class CrawlerHandler {

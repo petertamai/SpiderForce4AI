@@ -1,157 +1,160 @@
-// src/utils/converter.js - with placeholder image handling
-const { NodeHtmlMarkdown } = require('node-html-markdown');
-const fs = require('fs').promises;
-const path = require('path');
+// src/utils/converter.js
+const TurndownService = require('turndown');
+const { gfm } = require('turndown-plugin-gfm');
 
-// Cache for regex patterns
-let regexCache = null;
-
-async function loadMarkdownRegexes() {
-  if (regexCache) return regexCache;
+/**
+ * Convert HTML to Markdown
+ * @param {string} html - HTML content to convert
+ * @param {Object} options - Conversion options
+ * @returns {string} - Markdown content
+ */
+async function convertToMarkdown(html, options = {}) {
+  // ULTRA AGGRESSIVE PIPE TABLE CLEANUP - apply this immediately
+  // This should happen BEFORE TurndownService gets the content
+  if (html && typeof html === 'string') {
+    // First pass - remove any line with a pipe character completely
+    html = html.replace(/^.*\|.*$/gm, '');
+    
+    // Second pass - handle any that got missed in multi-line content
+    html = html.replace(/\|[\s\S]*?\|/g, '');
+    
+    // Clean leftover escaped characters
+    html = html.replace(/\\([_\\`'])/g, '$1');
+  }
   
   try {
-    const regexesPath = path.join(__dirname, '../config/markdown-regexes.json');
-    regexCache = JSON.parse(await fs.readFile(regexesPath, 'utf8'));
-    return regexCache;
-  } catch (error) {
-    console.error('Error loading markdown regexes:', error);
-    regexCache = {};
-    return regexCache;
-  }
-}
-
-// Precompiled regex patterns cache
-const compiledRegexes = {};
-
-async function convertToMarkdown(html, options = {}) {
-  try {
-    //console.log('Starting HTML to Markdown conversion');
-    
-    // Initial conversion
-    const markdown = NodeHtmlMarkdown.translate(html, {
-      bulletMarker: '*',
-      codeBlockStyle: 'fenced'
+    // Configure TurndownService with options
+    const turndownService = new TurndownService({
+      headingStyle: 'atx',
+      codeBlockStyle: 'fenced',
+      bulletListMarker: '-',
+      emDelimiter: '_',
+      strongDelimiter: '**',
+      linkStyle: 'inlined',
+      linkReferenceStyle: 'full',
+      hr: '---'
     });
-
-    // Fast path for aggressive_cleaning=false
-    if (options.aggressive_cleaning === false) {
-      return markdown;
-    }
-
-    // Load regexes
-    const regexes = await loadMarkdownRegexes();
-    //console.log('Applying markdown cleaning rules in order');
-
-    // Apply regexes in order
-    let cleanedMarkdown = markdown;
-    for (const [ruleName, pattern] of Object.entries(regexes)) {
-      try {
-        // Skip image-related rules if preserve images is enabled
-        // But still process replace_placeholder_images
-        if (options.remove_images === false && 
-            ruleName.includes('image') && 
-            ruleName !== 'replace_placeholder_images') {
-          continue;
-        }
-        
-        // Use cached compiled regex or compile and cache it
-        if (!compiledRegexes[ruleName]) {
-          compiledRegexes[ruleName] = new RegExp(pattern, 'gm');
-        }
-        const regex = compiledRegexes[ruleName];
-        
-        // Special case for placeholder images
-        if (ruleName === 'replace_placeholder_images') {
-          cleanedMarkdown = cleanedMarkdown.replace(regex, (match, altText) => {
-            // Extract alt text if available and create a marker
-            const imageLabel = altText ? altText.trim() : 'Image';
-            return `[;PLACEHOLDER_IMAGE: ${imageLabel}]`;
-          });
-          continue;
-        }
-        
-        switch(ruleName) {
-          case 'double_empty_lines':
-            cleanedMarkdown = cleanedMarkdown.replace(regex, '\n');
-            break;
-            
-          case 'line_breaks_before_headers':
-          case 'list_items_followed_by_bracket':
-            cleanedMarkdown = cleanedMarkdown.replace(regex, '$1\n\n$2');
-            break;
-            
-          case 'markdown_images':
-          case 'markdown_links_or_images':
-          case 'headers_with_markdown_links':
-          case 'empty_headers':
-          case 'empty_hash':
-          case 'remove_asterisks':
-            cleanedMarkdown = cleanedMarkdown.replace(regex, '');
-            break;
-            
-          case 'adjacent_links':
-            cleanedMarkdown = cleanedMarkdown.replace(regex, '$1 $2');
-            break;
-            
-          case 'markdown_links_starting_with_hash':
-            cleanedMarkdown = cleanedMarkdown.replace(regex, '$1');
-            break;
-            
-          case 'extra_lines':
-            cleanedMarkdown = cleanedMarkdown.replace(regex, '\n\n');
-            break;
-            
-          case 'empty_markdown_links':
-            cleanedMarkdown = cleanedMarkdown.replace(regex, '');
-            break;
-            
-          case 'content_followed_by_dashes':
-            cleanedMarkdown = cleanedMarkdown.replace(regex, '\n$1$2');
-            break;
-            
-          case 'clean_links':
-          case 'fix_missing_bracket':
-            cleanedMarkdown = cleanedMarkdown.replace(regex, '[$1]($2)');
-            break;
-            
-          case 'remove_outer_link':
-            cleanedMarkdown = cleanedMarkdown.replace(regex, '[$1]($2)');
-            break;
-            
-          case 'link_followed_by_text_and_equals':
-            cleanedMarkdown = cleanedMarkdown.replace(regex, '$1\n\n$2\n$3');
-            break;
-            
-          case 'relative_url_link':
-            cleanedMarkdown = cleanedMarkdown.replace(regex, (match, p1) => {
-              const brandName = p1.split('/').pop();
-              const capitalizedBrandName = brandName.split('-')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ');
-              return `[${capitalizedBrandName}](${p1})`;
-            });
-            break;
-            
-          default:
-            cleanedMarkdown = cleanedMarkdown.replace(regex, '');
-        }
-      } catch (error) {
-        console.error(`Error applying rule ${ruleName}:`, error);
+    
+    // Use GitHub Flavored Markdown plugin
+    turndownService.use(gfm);
+    
+    // Custom rules
+    // Remove empty links
+    turndownService.addRule('removeEmptyLinks', {
+      filter: (node, options) => {
+        return (
+          node.nodeName === 'A' &&
+          (!node.textContent.trim() || node.textContent.trim() === '#')
+        );
+      },
+      replacement: function(content, node, options) {
+        return '';
       }
-    }
-
-    // Final cleanup
-    cleanedMarkdown = cleanedMarkdown
-      .replace(/^\s+|\s+$/g, '')  // Trim start and end
-      .replace(/\n\s*\n\s*\n/g, '\n\n')  // Remove multiple blank lines
-      .replace(/(\[.*?\]\(.*?)\)+/g, '$1)') // Fix multiple closing parentheses
-      .trim();
-
-    //console.log('Markdown conversion and cleaning completed');
-    return cleanedMarkdown;
+    });
+    
+    // Handle images
+    turndownService.addRule('handleImages', {
+      filter: 'img',
+      replacement: function(content, node) {
+        // Skip image processing if remove_images is true
+        if (options.remove_images === true) {
+          return '';
+        }
+        
+        const alt = node.getAttribute('alt') || '';
+        const src = node.getAttribute('src') || '';
+        
+        // Skip empty or placeholder images
+        if (!src || 
+           src.includes('blank.gif') || 
+           src.includes('placeholder') || 
+           src.includes('spacer') || 
+           src.includes('1x1.gif') ||
+           src.includes('pixel') ||
+           src.includes('transparent')) {
+          return '';
+        }
+        
+        return `![${alt}](${src})`;
+      }
+    });
+    
+    // Handle code blocks
+    turndownService.addRule('codeBlocks', {
+      filter: function(node, options) {
+        return (
+          node.nodeName === 'PRE' &&
+          node.firstChild &&
+          node.firstChild.nodeName === 'CODE'
+        );
+      },
+      replacement: function(content, node, options) {
+        const code = node.firstChild.textContent || '';
+        const lang = node.firstChild.className || '';
+        const langMatch = lang.match(/language-(\w+)/);
+        const language = langMatch ? langMatch[1] : '';
+        
+        return `\`\`\`${language}\n${code}\n\`\`\`\n\n`;
+      }
+    });
+    
+    // Handle tables for GFM
+    turndownService.addRule('tables', {
+      filter: 'table',
+      replacement: function(content, node) {
+        // If the table contains complex formatting or is very large, 
+        // it might be better to just remove it
+        const rows = node.rows;
+        if (rows.length > 20 || content.includes('|---')) {
+          return '\n\n';
+        }
+        
+        // Otherwise, let the gfm plugin handle it
+        return content;
+      }
+    });
+    
+    // Remove script/style tags and their content
+    turndownService.remove(['script', 'style', 'iframe', 'noscript', 'canvas', 'svg']);
+    
+    // Convert HTML to Markdown
+    let markdown = turndownService.turndown(html);
+    
+    // Post-processing of markdown
+    
+    // Remove consecutive blank lines (more than 2)
+    markdown = markdown.replace(/\n{3,}/g, '\n\n');
+    
+    // Fix code block formatting issues
+    markdown = markdown.replace(/`{3,}(\w*)\n\n+/g, '```$1\n');
+    markdown = markdown.replace(/\n\n+`{3,}/g, '\n```');
+    
+    // Clean up escaped links
+    markdown = markdown.replace(/\\\[(.*?)\\\]\((.*?)\)/g, '[$1]($2)');
+    
+    // Extra cleaning for any pipe characters that might have been missed
+    markdown = markdown.replace(/^.*\|.*$/gm, '');
+    
+    return markdown;
   } catch (error) {
-    console.error('Error in markdown conversion:', error);
-    throw error;
+    console.error('Error converting HTML to Markdown:', error);
+    
+    // Fallback: return a basic text version if conversion fails
+    let textContent = '';
+    try {
+      // Create a temporary div to extract text
+      const { JSDOM } = require('jsdom');
+      const dom = new JSDOM(html);
+      textContent = dom.window.document.body.textContent || '';
+      
+      // Clean up the text content
+      textContent = textContent.replace(/\s+/g, ' ').trim();
+    } catch (e) {
+      console.error('Fallback text extraction failed:', e);
+      textContent = 'Error converting content to markdown.';
+    }
+    
+    return textContent;
   }
 }
 

@@ -1,7 +1,7 @@
 // src/utils/firecrawl.js - Enhanced with concurrent crawling
 const browserManager = require('./browser-manager');
-const { cleanContent } = require('./cleaner.js');
-const { convertToMarkdown } = require('./converter.js');
+const { cleanContent } = require('./cleaner.js_old');
+const { convertToMarkdown } = require('./converter.js_old');
 const { extractMetadata } = require('./metadata');
 const crawlerHandler = require('./crawl_urls_sitemap');
 const firecrawlWebhook = require('./webhook_firecrawl');

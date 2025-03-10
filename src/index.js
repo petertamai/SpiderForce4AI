@@ -2,8 +2,8 @@
 const express = require('express');
 const browserManager = require('./utils/browser-manager');
 const firecrawlRoutes = require('./routes/firecrawl');
-const { cleanContent } = require('./utils/cleaner');
-const { convertToMarkdown } = require('./utils/converter');
+const { cleanContent } = require('./utils/cleaner.js_old');
+const { convertToMarkdown } = require('./utils/converter.js_old');
 const { extractMetadata, formatMetadata } = require('./utils/metadata');
 const webhookHandler = require('./utils/webhook-handler');
 const crawlerHandler = require('./utils/crawl_urls_sitemap.js');
@@ -243,6 +243,9 @@ app.get('/health', async (req, res) => {
 /**
  * GET endpoint for basic conversion with optional selectors
  */
+// Fix for the processUrl return value handling in GET and POST /convert endpoints
+
+// GET endpoint for basic conversion with optional selectors
 app.get('/convert', async (req, res) => {
   try {
     const { 
@@ -253,7 +256,7 @@ app.get('/convert', async (req, res) => {
       remove_images,
       aggressiveCleaning,
       removeImages,
-      nocache // Add nocache parameter
+      nocache
     } = req.query;
     
     if (!url) {
@@ -286,14 +289,12 @@ app.get('/convert', async (req, res) => {
       processedUrls: new Set()
     };
     
-    // Process the URL using the concurrent crawler's processUrl method
-    const result = await concurrentCrawler.processUrl(formattedUrl, tempJob);
+    // Process the URL directly using the convertUrlToMarkdown function
+    const result = await convertUrlToMarkdown(formattedUrl, options);
     
-    // Format response as before
-    const markdown = `URL: ${formattedUrl}\n\n${result.metadata}\n\n---\n\n${result.content}`;
-
+    // Format response
     res.setHeader('Content-Type', 'text/markdown');
-    res.send(markdown);
+    res.send(result);
 
   } catch (error) {
     console.error('Conversion error:', error);
@@ -304,6 +305,8 @@ app.get('/convert', async (req, res) => {
       });
   }
 });
+
+
 
 app.post('/', (req, res) => {
     res.json({ "result": "pong" });
@@ -322,7 +325,7 @@ app.post('/convert', async (req, res) => {
       remove_images,
       aggressiveCleaning,
       removeImages,
-      nocache, // Add nocache parameter
+      nocache,
       custom_webhook 
     } = req.body;
     
@@ -335,7 +338,7 @@ app.post('/convert', async (req, res) => {
           removeSelectors: ['.ads', '.nav'],
           aggressive_cleaning: false,
           remove_images: true,
-          nocache: true, // Add to example
+          nocache: true,
           custom_webhook: {
             url: 'https://your-webhook.com/endpoint',
             method: 'POST',
@@ -359,18 +362,11 @@ app.post('/convert', async (req, res) => {
 
     const formattedUrl = validateAndFormatUrl(url);
     
-    // Create a temporary job for this request
-    const tempJob = {
-      id: `temp_${Date.now()}`,
-      config: options,
-      processedUrls: new Set()
-    };
-    
-    // Process the URL using the concurrent crawler's processUrl method
-    const result = await concurrentCrawler.processUrl(formattedUrl, tempJob);
-    
-    // Format response as before
-    const markdown = `URL: ${formattedUrl}\n\n${result.metadata}\n\n---\n\n${result.content}`;
+    // Use direct conversion instead of concurrent crawler
+    const result = await convertUrlToMarkdown(formattedUrl, options);
+
+    // Format response as markdown
+    const markdown = result; // Already formatted by convertUrlToMarkdown
 
     // Handle webhook if configured
     let webhookResult = null;

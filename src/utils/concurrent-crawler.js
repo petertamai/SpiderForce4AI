@@ -2,8 +2,8 @@
 const axios = require('axios');
 const { XMLParser } = require('fast-xml-parser');
 const browserManager = require('./browser-manager');
-const { cleanContent } = require('./cleaner');
-const { convertToMarkdown } = require('./converter');
+const { cleanContent } = require('./cleaner.js_old');
+const { convertToMarkdown } = require('./converter.js_old');
 const { extractMetadata, formatMetadata } = require('./metadata');
 const fs = require('fs').promises;
 const path = require('path');
@@ -447,11 +447,11 @@ class ConcurrentCrawler {
     const startTime = Date.now();
     
     // Always add to processed URLs set when we start processing
-    job.processedUrls.add(url);
+    job?.processedUrls?.add(url);
     
     // Create a cache key based on URL and selectors
-    const cacheKey = `sf4ai:${url}-${JSON.stringify(job.config.targetSelectors)}-${JSON.stringify(job.config.removeSelectors)}`;
-    const bypassCache = job.config.nocache === true; 
+    const cacheKey = `sf4ai:${url}-${JSON.stringify(job?.config?.targetSelectors || [])}-${JSON.stringify(job?.config?.removeSelectors || [])}`;
+    const bypassCache = job?.config?.nocache === true; 
     
     // Check cache first if caching is enabled
     if (!bypassCache) {
@@ -465,13 +465,12 @@ class ConcurrentCrawler {
             const result = JSON.parse(cachedResult);
             
             // If it was successful, add to successful URLs set
-            if (result.success) {
+            if (result.success && job?.successfulUrls) {
               job.successfulUrls.add(url);
-            } else {
+            } else if (job?.failedUrls) {
               job.failedUrls.add(url);
             }
             
-            // Let the processJob function handle adding to results
             return result;
           }
         } catch (error) {
@@ -485,21 +484,127 @@ class ConcurrentCrawler {
         const result = this.resultsCache.get(cacheKey);
         
         // If it was successful, add to successful URLs set
-        if (result.success) {
+        if (result.success && job?.successfulUrls) {
           job.successfulUrls.add(url);
-        } else {
+        } else if (job?.failedUrls) {
           job.failedUrls.add(url);
         }
         
-        // Let the processJob function handle adding to results
         return result;
       }
     } else {
       console.log('\x1b[33m%s\x1b[0m', `[CACHE BYPASS 🔄] nocache=true: ${url}`);
     }
     
-    // Rest of the function remains unchanged...
-    // Just make sure to not modify job.results directly
+    // Process the URL
+    try {
+      console.log(`[${url}] Processing URL...`);
+      
+      // Get job config with defaults
+      const config = {
+        targetSelectors: job?.config?.targetSelectors || [],
+        removeSelectors: job?.config?.removeSelectors || [],
+        aggressive_cleaning: job?.config?.aggressive_cleaning !== undefined ? job?.config?.aggressive_cleaning : true,
+        remove_images: job?.config?.remove_images !== undefined ? job?.config?.remove_images : false
+      };
+      
+      // Create browser page
+      page = await browserManager.createPage();
+      
+      // Navigate to the URL
+      await browserManager.navigateToUrl(page, url);
+      
+      // Extract metadata
+      const metadata = await extractMetadata(page);
+      const formattedMetadata = formatMetadata(metadata);
+      
+      // Clean content
+      const cleanedHtml = await cleanContent(page, config);
+      
+      // Convert to markdown
+      const markdown = await convertToMarkdown(cleanedHtml, config);
+      
+      // Create result object
+      const result = {
+        url,
+        success: true,
+        metadata: formattedMetadata,
+        content: markdown,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Add to successful URLs set if job is available
+      if (job?.successfulUrls) {
+        job.successfulUrls.add(url);
+      }
+      
+      // Store in cache if applicable
+      if (!bypassCache) {
+        try {
+          if (useRedis && redisClient) {
+            await redisClient.set(cacheKey, JSON.stringify(result), 'EX', REDIS_CACHE_TTL);
+          } else {
+            this.resultsCache.set(cacheKey, result);
+          }
+        } catch (error) {
+          console.error(`[Cache error] Failed to cache result for ${url}:`, error.message);
+        }
+      }
+      
+      // Update metrics
+      this.metrics.totalProcessed++;
+      this.metrics.successCount++;
+      const processingTime = Date.now() - startTime;
+      this.metrics.totalTime += processingTime;
+      this.metrics.avgProcessingTime = this.metrics.totalTime / this.metrics.totalProcessed;
+      
+      console.log(`[${url}] Processed successfully in ${processingTime}ms`);
+      return result;
+      
+    } catch (error) {
+      console.error(`[${url}] Error processing URL:`, error);
+      
+      // Determine if we should retry
+      const shouldRetry = retryCount < (job?.config?.retryCount || 2) && 
+                          (error.message.includes('net::') || 
+                           error.message.includes('Navigation timeout') ||
+                           error.message.includes('Protocol error'));
+      
+      if (shouldRetry) {
+        console.log(`[${url}] Retrying (${retryCount + 1}/${job?.config?.retryCount || 2})...`);
+        // Add delay before retry
+        await new Promise(resolve => setTimeout(resolve, job?.config?.retryDelay || 3000));
+        return this.processUrl(url, job, retryCount + 1);
+      }
+      
+      // Create error result
+      const errorResult = {
+        url,
+        success: false,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Add to failed URLs set if job is available
+      if (job?.failedUrls) {
+        job.failedUrls.add(url);
+      }
+      
+      // Update metrics
+      this.metrics.totalProcessed++;
+      this.metrics.failCount++;
+      
+      console.log(`[${url}] Failed to process after ${retryCount} retries`);
+      return errorResult;
+      
+    } finally {
+      // Always close the page
+      if (page) {
+        await browserManager.closePage(page).catch(err => {
+          console.error(`[${url}] Error closing page:`, err);
+        });
+      }
+    }
   }
 
   /**

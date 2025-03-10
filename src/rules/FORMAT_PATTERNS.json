@@ -1,0 +1,21 @@
+{
+    "excessiveNewlines": "\\n{3,}",
+    "tableSeparators": "\\|[\\s-]*\\|[\\s-]*\\|",
+    "tableRows": "\\| .+? \\| .+? \\|.*$",
+    "tableRowsFlags": "gm",
+    "escapeChars": "\\\\[_\\\\`']",
+    "codeBlocks": "\\|\\s*\\d+\\s*(?:\\d+\\s*)*\\s*\\|",
+    "markdownTags": "#+\\s+",
+    "documentationArtifacts": "\\[\\s*([^\\]]+?)\\s*\\]\\((?:[^)]+?)\\)",
+    "typeAnnotations": "`[^`]+?`",
+    "trailingBackslashes": "\\\\$",
+    "trailingBackslashesFlags": "gm",
+    "pipeSequences": "\\|+\\s*\\n",
+    "multiLinePipes": "\\|[\\s\\S]*?\\|[\\s\\S]*?\\|",
+    "anyTableLine": "^.*\\|.*\\|.*$",
+    "anyTableLineFlags": "gm",
+    "functionCallsWithPipes": ".*\\_[a-zA-Z0-9_]+.*\\|.*$",
+    "functionCallsWithPipesFlags": "gm",
+    "pipeWithDashes": ".*\\|\\s*-{5,}\\s*$",
+    "pipeWithDashesFlags": "gm"
+  }
